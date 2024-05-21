@@ -17,6 +17,10 @@ const FfxPoint PointHidden = { .x = 0, .y = yHidden };
 const FfxSize SizeZero = { .width = 0, .height = 0 };
 
 
+//////////////////////////
+// Creating nodes
+
+
 // The node.a property is not cleared the caller must update this
 static _Node* _addNode(_Scene *scene, FfxPoint pos) {
     _Node *free = scene->nextFree;
@@ -117,6 +121,9 @@ FfxNode ffx_scene_createRenderNode(FfxScene _scene, FfxNode _sceneNode,
 }
 
 
+//////////////////////////
+// Initializing
+
 FfxScene ffx_scene_init(uint32_t nodeCount) {
     // We need at least a root and render head
     if (nodeCount < 2) { return NULL; }
@@ -151,12 +158,23 @@ FfxScene ffx_scene_init(uint32_t nodeCount) {
     return scene;
 }
 
-
 FfxNode ffx_scene_root(FfxScene _scene) {
     _Scene *scene = _scene;
     return scene->root;
 }
 
+void _freeSequence(FfxScene scene, FfxPoint worldPos, FfxNode node) {
+    printf("WARNING: running free node\n");
+}
+
+void ffx_scene_nodeFree(FfxNode _node) {
+    _Node *node = _node;
+    node->func.sequenceFunc = _freeSequence;
+}
+
+
+//////////////////////////
+// Rendering
 
 uint32_t ffx_scene_sequence(FfxScene _scene) {
     _Scene *scene = _scene;
@@ -174,17 +192,6 @@ uint32_t ffx_scene_sequence(FfxScene _scene) {
     return 1; // @TODO: return void?
 }
 
-
-void _freeSequence(FfxScene scene, FfxPoint worldPos, FfxNode node) {
-    printf("WARNING: running free node\n");
-}
-
-void ffx_scene_nodeFree(FfxNode _node) {
-    _Node *node = _node;
-    node->func.sequenceFunc = _freeSequence;
-}
-
-
 void ffx_scene_render(FfxScene _scene, uint8_t *fragment, int32_t y0, int32_t height) {
     _Scene *scene = _scene;
 
@@ -193,6 +200,25 @@ void ffx_scene_render(FfxScene _scene, uint8_t *fragment, int32_t y0, int32_t he
         node->func.renderFunc(node->pos, node->a, node->b, (uint16_t*)fragment, y0, height);
         node = node->nextNode;
     }
+}
+
+
+//////////////////////////
+// Animations
+
+uint32_t ffx_scene_isRunningAnimation(FfxNode _node) {
+    _Node *node = (_Node*)_node;
+    if (node == NULL) { return 0; }
+
+    return (node->animate.node == NULL) ? 0: 1;
+}
+
+void ffx_scene_stopAnimations(FfxNode _node, FfxSceneActionStop stopType) {
+    _Node *node = (_Node*)_node;
+    if (node == NULL || node->animate.node == NULL) { return; }
+
+    // Schedule the first animation to cancel it and the following animations
+    node->animate.node->pos.y = stopType;
 }
 
 
@@ -238,7 +264,7 @@ FfxProperty* ffx_scene_nodePropertyB(FfxNode _node) {
 
 
 //////////////////////////
-// Node animation
+// Node Animation
 
 // @TODO: drop SceneContext from this?
 static void _nodeAnimatePositionHoriz(FfxNode _node, fixed_t t, FfxProperty p0, FfxProperty p1) {

@@ -1,6 +1,5 @@
 idf_component_register(
   SRCS
-    "src/animate.c"
     "src/color.c"
     "src/curves.c"
     "src/debug.c"
