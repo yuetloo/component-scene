@@ -10,18 +10,13 @@
 #include "scene.h"
 
 
-static const int16_t yHidden = 0x7fff;
-
 const FfxPoint PointZero = { .x = 0, .y = 0 };
-const FfxPoint PointHidden = { .x = 0, .y = yHidden };
-const FfxSize SizeZero = { .width = 0, .height = 0 };
 
 
 //////////////////////////
 // Creating nodes
 
 
-// The node.a property is not cleared the caller must update this
 static _Node* _addNode(_Scene *scene, FfxPoint pos) {
     _Node *free = scene->nextFree;
     if (free == NULL) {
@@ -30,9 +25,8 @@ static _Node* _addNode(_Scene *scene, FfxPoint pos) {
     }
 
     scene->nextFree = free->nextNode;
+    free->tag = 0;
     free->pos = pos;
-    // @TOOD: don't do this and copy in sequence to avoid unecessary copies?
-    free->b.ptr = NULL;
     free->nextNode = NULL;
     free->animate.node = NULL;
 
@@ -57,7 +51,7 @@ FfxNode ffx_scene_createNode(FfxScene _scene, FfxSequenceFunc sequenceFunc,
 }
 
 // @TODO: return uint32?
-FfxNode ffx_scene_createAnimationNode(FfxScene _scene, FfxNode _node, FfxProperty a, FfxProperty b, uint32_t duration, FfxAnimateFunc animateFunc, FfxCurveFunc curveFunc, FfxSceneAnimationCompletion onComplete) {
+FfxNode ffx_scene_createAnimationNode(FfxScene _scene, FfxNode _node, FfxProperty start, FfxProperty end, uint32_t duration, FfxAnimateFunc animateFunc, FfxCurveFunc curveFunc, FfxSceneAnimationCompletion onComplete) {
     _Scene *scene = _scene;
     _Node *node = _node;
 
@@ -83,8 +77,8 @@ FfxNode ffx_scene_createAnimationNode(FfxScene _scene, FfxNode _node, FfxPropert
     prop->nextNode = node->animate.node;;
     node->animate.node = animate;
 
-    prop->a = a;
-    prop->b = b;
+    prop->a = start;
+    prop->b = end;
 
     //return animate;
     return prop;
@@ -122,7 +116,7 @@ FfxNode ffx_scene_createRenderNode(FfxScene _scene, FfxNode _sceneNode,
 
 
 //////////////////////////
-// Initializing
+// Life-cycle
 
 FfxScene ffx_scene_init(uint32_t nodeCount) {
     // We need at least a root and render head
@@ -174,10 +168,12 @@ void ffx_scene_nodeFree(FfxNode _node) {
 
 
 //////////////////////////
-// Rendering
+// Sequencing and Rendering
 
 uint32_t ffx_scene_sequence(FfxScene _scene) {
     _Scene *scene = _scene;
+
+    scene->tick = xTaskGetTickCount();
 
     // Recycle the previous render list
     if (scene->renderHead != NULL) {
@@ -225,16 +221,21 @@ void ffx_scene_stopAnimations(FfxNode _node, FfxSceneActionStop stopType) {
 //////////////////////////
 // Node
 
-void ffx_scene_nodeSetPosition(FfxNode _node, FfxPoint pos) {
+int32_t ffx_scene_nodeTag(FfxNode _node) {
     _Node *node = _node;
-    if (node == NULL) { return; }
-    node->pos = pos;
+    if (node == NULL) { return 0; }
+    return node->tag;
 }
 
-FfxPoint ffx_scene_nodePosition(FfxNode _node) {
+int32_t ffx_scene_nodeSetTag(FfxNode _node, int32_t tag) {
     _Node *node = _node;
-    if (node == NULL) { return PointZero; }
-    return node->pos;
+    if (node == NULL) {
+        printf("[scene] Warning: updating bad proeprty (tag)\n");
+        return 0;
+    }
+    int32_t oldTag = node->tag;
+    node->tag = tag;
+    return oldTag;
 }
 
 // Setting a property of an invalid (NULL) node, will update
@@ -242,10 +243,20 @@ FfxPoint ffx_scene_nodePosition(FfxNode _node) {
 // returned but could still contain junk at any point.
 static FfxProperty junkProperty;
 
+FfxPoint* ffx_scene_nodePosition(FfxNode _node) {
+    _Node *node = _node;
+    if (node == NULL) {
+        printf("[scene] Warning: updating bad proeprty (position)\n");
+        junkProperty.ptr = NULL;
+        return &junkProperty.point;
+    }
+    return &node->pos;
+}
+
 FfxProperty* ffx_scene_nodePropertyA(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) {
-        printf("[scene] Warning: updating bad proeprty\n");
+        printf("[scene] Warning: updating bad proeprty (a)\n");
         junkProperty.ptr = NULL;
         return &junkProperty;
     }
@@ -255,7 +266,7 @@ FfxProperty* ffx_scene_nodePropertyA(FfxNode _node) {
 FfxProperty* ffx_scene_nodePropertyB(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) {
-        printf("[scene] Warning: updating bad proeprty\n");
+        printf("[scene] Warning: updating bad proeprty (b)\n");
         junkProperty.ptr = NULL;
         return &junkProperty;
     }
@@ -265,48 +276,54 @@ FfxProperty* ffx_scene_nodePropertyB(FfxNode _node) {
 
 //////////////////////////
 // Node Animation
-
-// @TODO: drop SceneContext from this?
-static void _nodeAnimatePositionHoriz(FfxNode _node, fixed_t t, FfxProperty p0, FfxProperty p1) {
-    _Node *node = _node;
-    node->pos.x = p0.point.x + scalarfx(p1.point.x - p0.point.x, t);
+/*
+static void _nodeAnimatePositionHoriz(FfxNode node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+    //_Node *node = _node;
+    //node->pos.x = p0.point.x + scalarfx(p1.point.x - p0.point.x, t);
+    FfxPoint *pos = ffx_scene_nodePosition(node);
+    pos->x = p0.point.x + scalarfx(p1.point.x - p0.point.x, t);
 }
 
-static void _nodeAnimatePositionVert(FfxNode _node, fixed_t t, FfxProperty p0, FfxProperty p1) {
-    _Node *node = _node;
-    node->pos.y = p0.point.y + scalarfx(p1.point.y - p0.point.y, t);
+static void _nodeAnimatePositionVert(FfxNode node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+    //_Node *node = _node;
+    //node->pos.y = p0.point.y + scalarfx(p1.point.y - p0.point.y, t);
+    FfxPoint *pos = ffx_scene_nodePosition(node);
+    pos->y = p0.point.y + scalarfx(p1.point.y - p0.point.y, t);
 }
-
-static void _nodeAnimatePosition(FfxNode _node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+*/
+/*
+static void _nodeAnimatePosition(FfxNode node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+    FfxPoint *pos = ffx_scene_nodePosition(node);
+    pos->x = p0.point.x + scalarfx(p1.point.x - p0.point.x, t);
+    pos->y = p0.point.y + scalarfx(p1.point.y - p0.point.y, t);
+*/
+/*
     _Node *node = _node;
-
     FfxPoint result = p0.point;
     result.x += scalarfx(p1.point.x - p0.point.x, t);
     result.y += scalarfx(p1.point.y - p0.point.y, t);
     node->pos = result;
-}
-
-uint32_t ffx_scene_nodeAnimatePosition(FfxScene scene, FfxNode _node, FfxPoint target, uint32_t duration, FfxCurveFunc curve, FfxSceneAnimationCompletion onComplete) {
-    //_Scene *scene = _scene;
-    _Node *node = _node;
+*/
+//}
+/*
+uint32_t ffx_scene_nodeAnimatePosition(FfxScene scene, FfxNode node, FfxPoint target, uint32_t duration, FfxCurveFunc curve, FfxSceneAnimationCompletion onComplete) {
+    FfxPoint *pos = ffx_scene_nodePosition(node);
 
     FfxAnimateFunc animateFunc = _nodeAnimatePosition;
-    if (node->pos.x == target.x) {
+    if (pos->x == target.x) {
         animateFunc = _nodeAnimatePositionVert;
-    } else if (node->pos.y == target.y) {
+    } else if (pos->y == target.y) {
         animateFunc = _nodeAnimatePositionHoriz;
     }
 
-    FfxProperty a, b;
-    a.point = node->pos;
-    b.point = target;
+    FfxProperty start, end;
+    start.point = *pos;
+    end.point = target;
 
-    _Node *animate = ffx_scene_createAnimationNode(scene, node, a, b,
+    _Node *animate = ffx_scene_createAnimationNode(scene, node, start, end,
       duration, animateFunc, curve, onComplete);
     if (animate == NULL) { return 0; }
 
-    //animate->nextNode->a.point = node->pos;
-    //animate->nextNode->b.point = target;
-
     return 1;
 }
+*/

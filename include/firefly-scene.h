@@ -94,9 +94,12 @@ void ffx_scene_stopAnimations(FfxNode node, FfxSceneActionStop stopType);
 // Schedule the node to be freed on the next sequence
 void ffx_scene_nodeFree(FfxNode node);
 
+int32_t ffx_scene_nodeTag(FfxNode node);
+int32_t ffx_scene_nodeSetTag(FfxNode node, int32_t tag);
+
 // Move a node within the scene (with respect to its parents in the hierarchy)
-void ffx_scene_nodeSetPosition(FfxNode node, FfxPoint pos);
-FfxPoint ffx_scene_nodePosition(FfxNode node);
+//void ffx_scene_nodeSetPosition(FfxNode node, FfxPoint pos);
+FfxPoint* ffx_scene_nodePosition(FfxNode node);
 
 uint32_t ffx_scene_nodeAnimatePosition(FfxScene scene, FfxNode node,
     FfxPoint target, uint32_t duration, FfxCurveFunc curve,

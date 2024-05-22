@@ -17,8 +17,8 @@
 #include <stddef.h>
 
 // For tick
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+//#include "freertos/FreeRTOS.h"
+//#include "freertos/task.h"
 
 
 #include "scene.h"
@@ -32,8 +32,9 @@ static void _updateAnimations(_Scene *scene, _Node *node) {
     // No animations
     if (animate == NULL) { return; }
 
-    int32_t now = xTaskGetTickCount();
-    scene->tick = now;
+    //int32_t now = xTaskGetTickCount();
+    //scene->tick = now;
+    int32_t now = scene->tick;
 
     _Node *lastAnimate = NULL;
 

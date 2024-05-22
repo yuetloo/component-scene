@@ -58,7 +58,7 @@ FfxNode ffx_scene_createRenderNode(FfxScene scene, FfxNode sceneNode,
   FfxPoint pos, FfxRenderFunc renderFunc);
 
 FfxNode ffx_scene_createAnimationNode(FfxScene scene, FfxNode node,
-  FfxProperty a, FfxProperty b, uint32_t duration,
+  FfxProperty start, FfxProperty end, uint32_t duration,
   FfxAnimateFunc animateFunc, FfxCurveFunc curveFunc,
   FfxSceneAnimationCompletion onComplete);
 
@@ -67,6 +67,23 @@ FfxNode ffx_scene_createAnimationNode(FfxScene scene, FfxNode node,
 FfxProperty* ffx_scene_nodePropertyA(FfxNode node);
 FfxProperty* ffx_scene_nodePropertyB(FfxNode node);
 
+
+typedef struct FfxClip {
+    uint8_t srcX, srcY;
+    uint8_t dstX, dstY;
+    uint8_t width, height;
+} FfxClip;
+
+/**
+ *  Given an input box (pos, size) and the viewport
+ *  ((0, y0), (240, height)), compute the clipping region of
+ *  the input box which overlaps the viewport and where it
+ *  maps to within that viewport.
+ *
+ *  If node is entirely outside the viewport, then width is
+ *  0 and the node can be skipped entirely.
+ */
+FfxClip ffx_scene_clip(FfxPoint pos, FfxSize size, int32_t y0, int32_t height);
 
 
 #ifdef __cplusplus
