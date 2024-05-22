@@ -5,6 +5,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
 #include <stdint.h>
 
 #include "firefly-curves.h"
@@ -14,6 +15,7 @@ typedef uint16_t rgb16_t;
 typedef uint32_t rgba16_t;
 
 typedef uint32_t rgb24_t;
+typedef uint32_t rgba24_t;
 
 
 // General color format that can be used to indicate RGBA and HSVA.
@@ -62,23 +64,24 @@ typedef uint32_t color_t;
 //rgb24_t color24HSV(int32_t hue, int32_t saturation, int32_t value);
 
 // Convert an RGBA to a color_t. All values are clamped.
-color_t color_rgb(int32_t red, int32_t gren, int32_t blue, int32_t alpha);
+color_t ffx_color_rgb(int32_t red, int32_t gren, int32_t blue, int32_t alpha);
 
 // Convert an HSV to a color_t. All values are clamped; this means hue may
 // result in an earlier rotation.
-color_t color_hsv(int32_t hue, int32_t saturation, int32_t value, int32_t alpha);
+color_t ffx_color_hsv(int32_t hue, int32_t saturation, int32_t value, int32_t alpha);
 
-// Comvert a color to RGB space
-rgb16_t color_rgb16(color_t color);
-rgba16_t color_rgba16(color_t color);
-rgb24_t color_rgb24(color_t color);
+// Convert a color to RGB space
+rgb16_t ffx_color_rgb16(color_t color);
+rgba16_t ffx_color_rgba16(color_t color);
+rgb24_t ffx_color_rgb24(color_t color);
+rgba24_t ffx_color_rgba24(color_t color);
 
 // Linear-interpolate from color a to b at parametric value t. When
 // the color-spaces (RGB vs HSV) differ, values are coerced to RGBA.
-color_t color_lerpfx(color_t c0, color_t c1, fixed_t t);
-color_t color_lerpQuotient(color_t c0, color_t c1, int32_t num, int32_t denom);
+color_t ffx_color_lerpfx(color_t c0, color_t c1, fixed_t t);
+color_t ffx_color_lerpRatio(color_t c0, color_t c1, int32_t top, int32_t bottom);
 
-color_t color_blend(color_t foreground, color_t background);
+color_t ffx_color_blend(color_t foreground, color_t background);
 
 //color_t color_lerp(color_t a, color_t b, uint32_t top, uint32_t bottom);
 
