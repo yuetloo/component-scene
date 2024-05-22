@@ -11,11 +11,11 @@ dependencies:
 maintainers:
   - "Richard Moore <me@ricmoo.com>"
 
-tags:
-  - "firefly"
-  - "scene graph"
+#tags:
+#  - "firefly"
+#  - "scene graph"
 
 discussion: https://github.com/firefly/component-scene/discussions
-issues: "https://github.com/firefly/component-scene/issues"
+issues: https://github.com/firefly/component-scene/issues
 repository: git@github.com:firefly/component-scene.git
 url: https://docs.firefly.app/v0/components/scene/
