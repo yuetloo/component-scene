@@ -4,6 +4,7 @@ idf_component_register(
     "src/curves.c"
     "src/debug.c"
     "src/fixed.c"
+    "src/node.c"
     "src/node-box.c"
     "src/node-fill.c"
     "src/node-group.c"
