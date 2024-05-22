@@ -13,7 +13,7 @@
 
 #define CLAMP(v,m)     (((v) < 0) ? 0: ((v) > (m)) ? (m): (v))
 
-color_t color_rgb(int32_t r, int32_t g, int32_t b, int32_t alpha) {
+color_t ffx_color_rgb(int32_t r, int32_t g, int32_t b, int32_t alpha) {
     color_t result = 0;
 
     result |= CLAMP(r, 0xff) << 16;
@@ -24,7 +24,7 @@ color_t color_rgb(int32_t r, int32_t g, int32_t b, int32_t alpha) {
     return result;
 }
 
-color_t color_hsv(int32_t h, int32_t s, int32_t v, int32_t alpha) {
+color_t ffx_color_hsv(int32_t h, int32_t s, int32_t v, int32_t alpha) {
     color_t result = COLOR_HSV;
 
     if (h < 0) {
@@ -74,7 +74,7 @@ static color_t _fromHSV(color_t color) {
     //    - so (63 - s) is the equivlent of (1.0 - s_)
     //    - (v * s) / (255 * 63) is equivalent of (v_ * s_)
 
-    // Mask out the two HSV-specific bits
+    // Mask out the two HSV-specific bits; keep the alpha
     color_t result = color & 0x3f000000;
 
     int32_t p = (v * (63 - s)) / 63, q;
@@ -110,18 +110,22 @@ static color_t _fromHSV(color_t color) {
     return result;
 }
 
-rgb16_t color_rgb16(color_t color) {
+rgb16_t ffx_color_rgb16(color_t color) {
     if (color & COLOR_HSV) { color = _fromHSV(color); }
     return RGB16((color >> 24) & 0xff, (color >> 16) & 0xff, color & 0xff);
 }
-
 
 //rgba16_t color_rgba16(color_t color) {
 //    if (color & COLOR_HSV) { color = _fromHSV(color); }
 //    return RGBA16((color >> 24) & 0xff, (color >> 16) & 0xff, color & 0xff, color >> 24);
 //}
 
-rgb24_t color_rgb24(color_t color) {
+rgb24_t ffx_color_rgb24(color_t color) {
+    if (color & COLOR_HSV) { color = _fromHSV(color); }
+    return color & 0x00ffffff;
+}
+
+rgba24_t ffx_color_rgba24(color_t color) {
     if (color & COLOR_HSV) { color = _fromHSV(color); }
     return color;
 }
@@ -130,25 +134,25 @@ static int32_t lerp(int32_t a, int32_t b, int32_t top, int32_t bottom) {
     return ((top * b) / bottom) + (((bottom - top) * a) / bottom);
 }
 
-color_t color_lerpQuotient(color_t c0, color_t c1, int32_t num, int32_t denom) {
-    int32_t a = lerp(ALPHA(c0), ALPHA(c1), num, denom);
+color_t ffx_color_lerpRatio(color_t c0, color_t c1, int32_t top, int32_t bottom) {
+    int32_t a = lerp(ALPHA(c0), ALPHA(c1), top, bottom);
 
     if (((c0 >> 31) + (c1 >> 31)) != 2) {
-        c0 = color_rgb24(c0);
-        c1 = color_rgb24(c1);
+        c0 = ffx_color_rgb24(c0);
+        c1 = ffx_color_rgb24(c1);
 
-        int32_t r = lerp(RGB_RED(c0), RGB_RED(c1), num, denom);
-        int32_t g = lerp(RGB_BLUE(c0), RGB_BLUE(c1), num, denom);
-        int32_t b = lerp(RGB_GREEN(c0), RGB_GREEN(c1), num, denom);
+        int32_t r = lerp(RGB_RED(c0), RGB_RED(c1), top, bottom);
+        int32_t g = lerp(RGB_BLUE(c0), RGB_BLUE(c1), top, bottom);
+        int32_t b = lerp(RGB_GREEN(c0), RGB_GREEN(c1), top, bottom);
 
-        return color_rgb(r, g, b, a);
+        return ffx_color_rgb(r, g, b, a);
     }
 
-    int32_t h = lerp(HSV_HUE(c0), HSV_HUE(c1), num, denom);
-    int32_t s = lerp(HSV_SAT(c0), HSV_SAT(c1), num, denom);
-    int32_t v = lerp(HSV_VAL(c0), HSV_VAL(c1), num, denom);
+    int32_t h = lerp(HSV_HUE(c0), HSV_HUE(c1), top, bottom);
+    int32_t s = lerp(HSV_SAT(c0), HSV_SAT(c1), top, bottom);
+    int32_t v = lerp(HSV_VAL(c0), HSV_VAL(c1), top, bottom);
 
-    return color_hsv(h, s, v, a);
+    return ffx_color_hsv(h, s, v, a);
 }
 
 
