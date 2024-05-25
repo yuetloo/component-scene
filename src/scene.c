@@ -34,10 +34,22 @@ static _Node* _addNode(_Scene *scene, FfxPoint pos) {
 }
 
 void _freeNode(_Scene *scene, _Node *node) {
+
+    // Recycle any animation nodes
+    _Node *head = node->animate.node;
+    if (head) {
+        _Node *tail = head;
+        while (tail && tail->nextNode) {
+            tail = tail->nextNode;
+        }
+
+        tail->nextNode = scene->nextFree;
+        scene->nextFree = head;
+    }
+
+    // Recycle the node itself
     node->nextNode = scene->nextFree;
     scene->nextFree = node;
-
-    // @TODO: Free animationHead
 }
 
 FfxNode ffx_scene_createNode(FfxScene _scene, FfxSequenceFunc sequenceFunc,

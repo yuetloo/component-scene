@@ -34,7 +34,7 @@ typedef struct _Node {
     //  - PropAnimate => onComplete callback
     AnimateProp animate;
 
-    NodeFunc func;
+    FfxNodeFunc func;
     FfxPoint pos;
     FfxProperty a;
     FfxProperty b;
@@ -64,7 +64,7 @@ typedef struct _Scene {
 // USe this when a node has been allocated but not added to the scene.
 void _freeNode(_Scene *scene, _Node *node);
 
-void _freeSequence(FfxScene scene, FfxPoint worldPos, FfxNode node);
+//void _freeSequence(FfxScene scene, FfxPoint worldPos, FfxNode node);
 
 
 #ifdef __cplusplus
