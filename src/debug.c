@@ -1,14 +1,142 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "scene.h"
 
-static int32_t _getNodeIndex(_Scene *scene, const _Node *node) {
-    if (node == NULL) { return -1; }
-    _Node *base = &scene->nodes[0];
-    return (node - base);
+
+// From node-group.c
+void _groupSequence(FfxScene _scene, FfxPoint worldPos, FfxNode _node);
+
+// From scene.c
+void _freeSequence(FfxScene scene, FfxPoint worldPos, FfxNode node);
+
+
+static uint32_t debugCallbackCount = 0;
+static FfxSceneDumpNodeFunc debugFuncs[FFX_SCENE_DEBUG];
+
+int32_t ffx_scene_registerDebug(FfxSceneDumpNodeFunc dumpNode) {
+    if (debugCallbackCount < FFX_SCENE_DEBUG) {
+        debugFuncs[debugCallbackCount++] = dumpNode;
+    }
+    return 1;
 }
 
-static void dumpNode(_Scene *scene, _Node *node, uint32_t indent) {
+
+static void _dumpSequenceNode(_Node *node, int32_t indent) {
+    if (node == NULL) { return; }
+
+    uint8_t padding[2 * indent + 1];
+    memset(padding, 32, sizeof(padding));
+    padding[2 * indent] = 0;
+
+    if (node->func.sequenceFunc == _freeSequence) {
+        printf("%s- [pending free node]\n", padding);
+        return;
+    }
+
+    if (node->func.sequenceFunc == _groupSequence) {
+        printf("%s- Group Sequence Node pos=(%d, %d)\n", padding,
+          node->pos.x, node->pos.y);
+        _dumpSequenceNode(node->a.ptr, indent + 1);
+
+    } else {
+        char output[128];
+        memset(output, 0, sizeof(output));
+
+        for (int i = 0; i < debugCallbackCount; i++) {
+            FfxSceneDumpNodeFunc dumpFunc = debugFuncs[i];
+            dumpFunc(node, node->func, output, sizeof(output));
+
+            if (output[0]) {
+                printf("%s- %s \n", padding, output);
+                break;
+            }
+        }
+
+        if (!output[0]) {
+            printf("%s- [unknown sequence node]\n", padding);
+        }
+    }
+
+    if (node->nextNode) {
+        _dumpSequenceNode(node->nextNode, indent);
+    }
+}
+
+static void _dumpRenderNode(_Node *node, int32_t indent) {
+    uint8_t padding[2 * indent + 1];
+    memset(padding, 32, sizeof(padding));
+    padding[2 * indent] = 0;
+
+    char output[128];
+    memset(output, 0, sizeof(output));
+
+    uint32_t found = 0;
+    for (int i = 0; i < debugCallbackCount; i++) {
+        FfxSceneDumpNodeFunc dumpFunc = debugFuncs[i];
+        dumpFunc(node, node->func, output, sizeof(output));
+
+        if (output[0]) {
+            printf("%s- %s\n", padding, output);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("%s- [unknown render node]\n", padding);
+    }
+}
+
+/*
+static void _dumpNode(FfxNode *_node, int32_t indent) {
+    _Node *node = _node;
+
+    uint8_t padding[2 * indent + 1];
+    memset(padding, 32, sizeof(padding));
+    padding[2 * indent] = 0;
+
+    if (node->func.sequenceFunc == _freeSequence) {
+        printf("[%04lx]%s- [pending free node]\n", index, padding);
+        return;
+    }
+
+    char output[128];
+    memset(output, 0, sizeof(output));
+
+    for (int i = 0; i < debugCallbackCount; i++) {
+        FfxSceneDumpNodeFunc dumpFunc = debugFuncs[i];
+        //FfxNode _child = 
+        dumpFunc(node, node->func, output, sizeof(output));
+
+        if (output[0]) {
+            printf("[%04lx]%s- %s \n", index, padding, output);
+
+            if (_child) {
+                _Node *child = _child;
+                _dumpNode(child, indent + 1);
+            }
+        }
+
+        if (node->nextNode) {
+            _dumpNode(node->nextNode, indent);
+        }
+
+        return;
+    }
+
+    FfxPoint *pos = ffx_scene_nodePosition(node);
+
+    printf("[%04lx]%s- [unknown node type] pos=(%d, %d)\n", index, padding, pos->x,
+      pos->y);
+
+    if (node->nextNode) {
+        _dumpNode(node->nextNode, indent);
+    }
+}
+*/
+
+//static void dumpNode(_Scene *scene, _Node *node, uint32_t indent) {
 /*
     uint8_t padding[2 * indent + 1];
     memset(padding, 32, sizeof(padding));
@@ -68,19 +196,31 @@ static void dumpNode(_Scene *scene, _Node *node, uint32_t indent) {
 
     if (node->nextNode != NULL) { dumpNode(scene, node->nextNode, indent); }
 */
-}
+//}
 
-void scene_dump(FfxScene _scene) {
+void ffx_scene_dump(FfxScene _scene) {
     _Scene *scene = _scene;
+
+    uint32_t count = 0;
+    _Node *cur = scene->nextFree;
+    while (cur) {
+        count++;
+        cur = cur->nextNode;
+   }
+
     printf("Scene: %p\n", scene);
     printf("  - tick: %ld\n", scene->tick);
-    printf("  - nextFree: %ld\n", _getNodeIndex(scene, scene->nextFree));
+    printf("  - free nodes: %ld\n", count);
 
     printf("  - Scene Graph:\n");
-    dumpNode(scene, scene->root, 0);
+    _dumpSequenceNode(scene->root, 2);
 
-    printf("  - Render Sequence:\n");
-    if (scene->renderHead) {
-        dumpNode(scene, scene->renderHead, 0);
+    cur = scene->renderHead;
+    if (cur) {
+        printf("  - Render Sequence:\n");
+        while (cur) {
+            _dumpRenderNode(cur, 0);
+            cur = cur->nextNode;
+        }
     }
 }

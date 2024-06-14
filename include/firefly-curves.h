@@ -19,45 +19,45 @@ extern "C" {
  *  it to a new value based on the curve function.
  */
 
-typedef fixed_t (*FfxCurveFunc)(fixed_t t);
+typedef fixed_ffxt (*FfxCurveFunc)(fixed_ffxt t);
 
-fixed_t FfxCurveLinear(fixed_t t);
+fixed_ffxt FfxCurveLinear(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInSine(fixed_t t);
-fixed_t FfxCurveEaseOutSine(fixed_t t);
-fixed_t FfxCurveEaseInOutSine(fixed_t t);
+fixed_ffxt FfxCurveEaseInSine(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutSine(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutSine(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInQuad(fixed_t t);
-fixed_t FfxCurveEaseOutQuad(fixed_t t);
-fixed_t FfxCurveEaseInOutQuad(fixed_t t);
+fixed_ffxt FfxCurveEaseInQuad(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutQuad(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutQuad(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInCubic(fixed_t t);
-fixed_t FfxCurveEaseOutCubic(fixed_t t);
-fixed_t FfxCurveEaseInOutCubic(fixed_t t);
+fixed_ffxt FfxCurveEaseInCubic(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutCubic(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutCubic(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInQuart(fixed_t t);
-fixed_t FfxCurveEaseOutQuart(fixed_t t);
-fixed_t FfxCurveEaseInOutQuart(fixed_t t);
+fixed_ffxt FfxCurveEaseInQuart(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutQuart(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutQuart(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInQuint(fixed_t t);
-fixed_t FfxCurveEaseOutQuint(fixed_t t);
-fixed_t FfxCurveEaseInOutQuint(fixed_t t);
+fixed_ffxt FfxCurveEaseInQuint(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutQuint(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutQuint(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInExpo(fixed_t t);
-fixed_t FfxCurveEaseOutExpo(fixed_t t);
-fixed_t FfxCurveEaseInOutExpo(fixed_t t);
+fixed_ffxt FfxCurveEaseInExpo(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutExpo(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutExpo(fixed_ffxt t);
 
-fixed_t FfxCurveEaseInBack(fixed_t t);
-fixed_t FfxCurveEaseOutBack(fixed_t t);
-// fixed_t CurveEaseInOutBack(fixed_t t)
+fixed_ffxt FfxCurveEaseInBack(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutBack(fixed_ffxt t);
+// fixed_ffxt CurveEaseInOutBack(fixed_ffxt t)
 
-fixed_t FfxCurveEaseInElastic(fixed_t t);
-fixed_t FfxCurveEaseOutElastic(fixed_t t);
-// fixed_t CurveEaseInOutElastic(fixed_t t)
+fixed_ffxt FfxCurveEaseInElastic(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutElastic(fixed_ffxt t);
+// fixed_ffxt CurveEaseInOutElastic(fixed_ffxt t)
 
-fixed_t FfxCurveEaseInBounce(fixed_t t);
-fixed_t FfxCurveEaseOutBounce(fixed_t t);
-fixed_t FfxCurveEaseInOutBounce(fixed_t t);
+fixed_ffxt FfxCurveEaseInBounce(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseOutBounce(fixed_ffxt t);
+fixed_ffxt FfxCurveEaseInOutBounce(fixed_ffxt t);
 
 
 #ifdef __cplusplus

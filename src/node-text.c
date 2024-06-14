@@ -319,7 +319,7 @@ void ffx_scene_textSetTextInt(FfxNode node, int32_t value) {
     ffx_scene_textSetText(node, buffer, length);
 }
 
-void ffx_scene_textSetColor(FfxNode node, rgb16_t color) {
+void ffx_scene_textSetColor(FfxNode node, rgb16_ffxt color) {
     FfxProperty *a = ffx_scene_nodePropertyA(node);
     a->text.color = color;
 }

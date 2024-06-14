@@ -1,20 +1,20 @@
 #include "firefly-fixed.h"
 
 
-const fixed_t FM_PI_2   = 0x19220;
-const fixed_t FM_PI     = 2 * FM_PI_2;
-const fixed_t FM_3PI_2  = 3 * FM_PI_2;
-const fixed_t FM_2PI    = 4 * FM_PI_2;
+const fixed_ffxt FM_PI_2   = 0x19220;
+const fixed_ffxt FM_PI     = 2 * FM_PI_2;
+const fixed_ffxt FM_3PI_2  = 3 * FM_PI_2;
+const fixed_ffxt FM_2PI    = 4 * FM_PI_2;
 
-const fixed_t FM_E      = 0x2b7e1;
+const fixed_ffxt FM_E      = 0x2b7e1;
 
-const fixed_t FM_MAX    = 0x7fffffff;
-const fixed_t FM_MIN    = 0x80000000;
+const fixed_ffxt FM_MAX    = 0x7fffffff;
+const fixed_ffxt FM_MIN    = 0x80000000;
 
-const fixed_t FM_1      =    0x10000;
+const fixed_ffxt FM_1      =    0x10000;
 
 
-fixed_t tofx(int32_t value) {
+fixed_ffxt tofx(int32_t value) {
     return value << 16;
 }
 
@@ -23,7 +23,7 @@ static uint32_t umul32hi(uint32_t a, uint32_t b) {
 }
 
 /* compute log2() with s15.16 fixed-point argument and result */
-fixed_t log2fx(fixed_t arg) {
+fixed_ffxt log2fx(fixed_ffxt arg) {
     const uint32_t a0 = (uint32_t)((1.44269476063 - 1)* (1LL << 32) + 0.5);
     const uint32_t a1 = (uint32_t)(7.2131008654833e-1 * (1LL << 32) + 0.5);
     const uint32_t a2 = (uint32_t)(4.8006370104849e-1 * (1LL << 32) + 0.5);
@@ -53,7 +53,7 @@ fixed_t log2fx(fixed_t arg) {
 }
 
 /* compute exp2() with s15.16 fixed-point argument and result */
-fixed_t exp2fx(fixed_t arg) {
+fixed_ffxt exp2fx(fixed_ffxt arg) {
     const uint32_t a0 = (uint32_t)(6.9314718107e-1 * (1LL << 32) + 0.5);
     const uint32_t a1 = (uint32_t)(2.4022648809e-1 * (1LL << 32) + 0.5);
     const uint32_t a2 = (uint32_t)(5.5504413787e-2 * (1LL << 32) + 0.5);
@@ -87,12 +87,12 @@ fixed_t exp2fx(fixed_t arg) {
 }
 
 /* s15.16 division without rounding */
-fixed_t divfx(fixed_t x, fixed_t y) {
+fixed_ffxt divfx(fixed_ffxt x, fixed_ffxt y) {
     return ((int64_t)x * 65536) / y;
 }
 
 /* s15.16 multiplication with rounding */
-fixed_t mulfx(fixed_t x, fixed_t y) {
+fixed_ffxt mulfx(fixed_ffxt x, fixed_ffxt y) {
     int32_t r;
     int64_t t = (int64_t)x * (int64_t)y;
     r = (int32_t)(uint32_t)(((uint64_t)t + (1 << 15)) >> 16);
@@ -100,18 +100,18 @@ fixed_t mulfx(fixed_t x, fixed_t y) {
 }
 
 
-int32_t scalarfx(int32_t _scalar, fixed_t x) {
+int32_t scalarfx(int32_t _scalar, fixed_ffxt x) {
     int64_t scalar = _scalar;
     return (scalar * x) >> 16;
 }
 
 /* compute a**b for a >= 0 */
-fixed_t powfx(fixed_t a, fixed_t b) {
+fixed_ffxt powfx(fixed_ffxt a, fixed_ffxt b) {
     return exp2fx(mulfx(b, log2fx(a)));
 }
 
 // See: http://www.coranac.com/2009/07/sines/
-fixed_t sinfx(fixed_t x) {
+fixed_ffxt sinfx(fixed_ffxt x) {
 
     // Normalize i to [0, 2pi)
     x = (((x % FM_2PI) + FM_2PI) % FM_2PI);
@@ -133,11 +133,11 @@ fixed_t sinfx(fixed_t x) {
     // 3rd order approximation;
     // Note: tweaked 0xf476 to 0xf475 so that FM_PI and FM_3PI_2
     // line up perfectly with 1 and -1 respectively.
-    fixed_t result = mulfx(0xf475, x) - mulfx(0x2106, mulfx(mulfx(x, x), x));
+    fixed_ffxt result = mulfx(0xf475, x) - mulfx(0x2106, mulfx(mulfx(x, x), x));
 
     return ymul * result;
 }
 
-fixed_t cosfx(fixed_t x) {
+fixed_ffxt cosfx(fixed_ffxt x) {
     return sinfx(x + FM_PI_2);
 }

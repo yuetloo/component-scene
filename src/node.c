@@ -4,17 +4,17 @@
 #include "firefly-scene-private.h"
 
 
-static void _nodeAnimatePositionHoriz(FfxNode node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+static void _nodeAnimatePositionHoriz(FfxNode node, fixed_ffxt t, FfxProperty p0, FfxProperty p1) {
     FfxPoint *pos = ffx_scene_nodePosition(node);
     pos->x = p0.point.x + scalarfx(p1.point.x - p0.point.x, t);
 }
 
-static void _nodeAnimatePositionVert(FfxNode node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+static void _nodeAnimatePositionVert(FfxNode node, fixed_ffxt t, FfxProperty p0, FfxProperty p1) {
     FfxPoint *pos = ffx_scene_nodePosition(node);
     pos->y = p0.point.y + scalarfx(p1.point.y - p0.point.y, t);
 }
 
-static void _nodeAnimatePosition(FfxNode node, fixed_t t, FfxProperty p0, FfxProperty p1) {
+static void _nodeAnimatePosition(FfxNode node, fixed_ffxt t, FfxProperty p0, FfxProperty p1) {
     FfxPoint *pos = ffx_scene_nodePosition(node);
     pos->x = p0.point.x + scalarfx(p1.point.x - p0.point.x, t);
     pos->y = p0.point.y + scalarfx(p1.point.y - p0.point.y, t);

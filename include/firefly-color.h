@@ -6,82 +6,95 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "firefly-curves.h"
 
+// R5G6B5
+typedef uint16_t rgb16_ffxt;
 
-typedef uint16_t rgb16_t;
-typedef uint32_t rgba16_t;
+//typedef uint32_t rgba16_t;
 
-typedef uint32_t rgb24_t;
-typedef uint32_t rgba24_t;
+// 0x00RRGGBB
+typedef uint32_t rgb24_ffxt;
+
+// 0xAARRGGBB
+typedef uint32_t rgba24_ffxt;
 
 
-// General color format that can be used to indicate RGBA and HSVA.
-// - RGB: 8-bits per color, 6-bits alpha
-// - HSV: hue=[-4095,4095], 6-bits for saturation, value and alpha
-typedef uint32_t color_t;
+// General color format that can be used to indicate a generic
+// color in either RGBA and HSVA color spaces. Values are
+// clamped.
+// - RGBA: 8-bits per color; alpha=[0,32]
+// - HSVA: hue=[-3960,3960]; 6-bits for saturation, value; alpha=[0,32]
+typedef uint32_t color_ffxt;
 
 // Stores RGB565 as a uint16_t
-#define RGB16(r,g,b)     ((((r) & 0xf8) << 8) | (((g) & 0xfc) << 3) | (((b) & 0xf8) >> 3))
-
-// Stores RGB888 as a uint32_t
-#define RGB24(r,g,b)    ((rgb24_t)(((r) << 16) | ((g) << 8) | (b)))
-
-// Extract color components
-#define _IS_HUE_NEGATIVE(c)  (!!((c) & 0x40000000))
-#define IS_HSV(c)            (!!((c) & 0x80000000))
-
-#define RGB_RED(c)           (((c) >> 16) & 0xff)
-#define RGB_BLUE(c)          (((c) >> 8) & 0xff)
-#define RGB_GREEN(c)         ((c) & 0xff)
-
-#define HSV_HUE(c)           ((((c) >> 12) & 0xfff) * (_IS_HUE_NEGATIVE(c) ? -1: 1))
-#define HSV_SAT(c)           (((c) >> 6) & 0x3c)
-#define HSV_VAL(c)           ((c) & 0x3c)
-
-#define ALPHA(c)             (0x3f - (((c) >> 24) & 0x3f))
-
-#define MAX_ALPHA            (0x3f)
-
-
-
-// Stores the 0ARGB8565 as a uint32_t
-//#define RGBA16(r,g,b,a)  (((uint32_t)RGB16((r),(g),(b))) | ((0xff - ((a) & 0xff)) << 16))
+#define RGB16(r,g,b)     ((((uint32_t)(r) & 0xf8) << 8) | (((uint32_t)(g) & 0xfc) << 3) | (((uint32_t)(b) & 0xf8) >> 3))
 
 // A color which darkens pixels under it by 50%. It can be
 // used for a more optimized algorithm
 //#define RGB_DARK50       (RGBA16(0,0,0,128))
 
+/**
+ *  Describes %%color%% into %%name%% in upto %%length%% bytes.
+ *
+ *  e.g.
+ *    - "RGB(128/255, 0/255, 12/255, 16/32)"
+ *    - "HSV(1018, 63/63, 59/63, 16/32)"
+ */
+size_t ffx_color_name(color_ffxt color, char *name, size_t length);
 
-//color_t colorHSV(int32_t hue, int32_t saturation, int32_t value);
-//color_t colorHSVA(int32_t hue, int32_t saturation, int32_t value, int32_t alpha);
+/**
+ *  Convert an RGBA tuple into a color. All values are clamped to
+ *  their respective depths; see above.
+ */
+color_ffxt ffx_color_rgb(int32_t r, int32_t g, int32_t b, int32_t alpha);
 
-//color_t color16HSV(int32_t hue, int32_t saturation, int32_t value);
-//color_r color16HSVA(int32_t hue, int32_t saturation, int32_t value, uint8_t alpha);
+/**
+ *  Convert an HSVA tuple into a color. All values are clamped to
+ *  their respective depths; see above.
+ *
+ *  If the hue may be positive or negative, but values outside the
+ *  depth are moved to "earlier" rotations (rotations closer to zero).
+ */
+color_ffxt ffx_color_hsv(int32_t hue, int32_t sat, int32_t val, int32_t alpha);
 
-//rgb24_t color24HSV(int32_t hue, int32_t saturation, int32_t value);
+/**
+ *  Convert a color from the RGB color space to the HSV color space.
+ */
+color_ffxt ffx_color_rgb2hsv(color_ffxt color);
 
-// Convert an RGBA to a color_t. All values are clamped.
-color_t ffx_color_rgb(int32_t red, int32_t gren, int32_t blue, int32_t alpha);
+/**
+ *  Convert a color from the HSV color space to the RGB color space.
+ */
+color_ffxt ffx_color_hsv2rgb(color_ffxt color);
 
-// Convert an HSV to a color_t. All values are clamped; this means hue may
-// result in an earlier rotation.
-color_t ffx_color_hsv(int32_t hue, int32_t saturation, int32_t value, int32_t alpha);
+/**
+ *  Return the R5G6B5 value that most closely matches %%color%%.
+ */
+rgb16_ffxt ffx_color_rgb16(color_ffxt color);
+//rgba16_t ffx_color_rgba16(color_t color);
 
-// Convert a color to RGB space
-rgb16_t ffx_color_rgb16(color_t color);
-rgba16_t ffx_color_rgba16(color_t color);
-rgb24_t ffx_color_rgb24(color_t color);
-rgba24_t ffx_color_rgba24(color_t color);
+/**
+ *  Return the RGB888 value of %%color%%. If color is HSV, it is
+ *  converted. Any alpha is dropped.
+ */
+rgb24_ffxt ffx_color_rgb24(color_ffxt color);
+
+/**
+ *  Return the RGB888 value of %%color%%. If color is HSV, it is
+ *  converted. The alpha is scaled from [0, 32] to [0, 255]
+ */
+rgba24_ffxt ffx_color_rgba24(color_ffxt color);
 
 // Linear-interpolate from color a to b at parametric value t. When
 // the color-spaces (RGB vs HSV) differ, values are coerced to RGBA.
-color_t ffx_color_lerpfx(color_t c0, color_t c1, fixed_t t);
-color_t ffx_color_lerpRatio(color_t c0, color_t c1, int32_t top, int32_t bottom);
+color_ffxt ffx_color_lerpfx(color_ffxt c0, color_ffxt c1, fixed_ffxt t);
+color_ffxt ffx_color_lerpRatio(color_ffxt c0, color_ffxt c1, int32_t top, int32_t bottom);
 
-color_t ffx_color_blend(color_t foreground, color_t background);
+color_ffxt ffx_color_blend(color_ffxt foreground, color_ffxt background);
 
 //color_t color_lerp(color_t a, color_t b, uint32_t top, uint32_t bottom);
 

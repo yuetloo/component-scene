@@ -15,14 +15,14 @@
 // instead of firefly-scene-private.h
 
 #include <stddef.h>
-
-// For tick
-//#include "freertos/FreeRTOS.h"
-//#include "freertos/task.h"
+#include <stdio.h>
 
 
 #include "scene.h"
 
+
+// From scene.c
+void _freeSequence(FfxScene scene, FfxPoint worldPos, FfxNode node);
 
 
 static void _updateAnimations(_Scene *scene, _Node *node) {
@@ -52,8 +52,8 @@ static void _updateAnimations(_Scene *scene, _Node *node) {
 
         if (stopType != FfxSceneActionStopCurrent) {
             // Compute the curve-adjusted t
-            // fixed_t t = FM_1 - divfx((endTime - now) << 16, duration << 16);
-            fixed_t t = FM_1 - (tofx(endTime - now) / duration);
+            // fixed_ffxt t = FM_1 - divfx((endTime - now) << 16, duration << 16);
+            fixed_ffxt t = FM_1 - (tofx(endTime - now) / duration);
             if (t >= FM_1) { t = FM_1; }
 
             t = prop->func.curveFunc(t);
@@ -89,7 +89,7 @@ static void _updateAnimations(_Scene *scene, _Node *node) {
     }
 }
 
-static void _groupSequence(FfxScene _scene, FfxPoint worldPos, FfxNode _node) {
+void _groupSequence(FfxScene _scene, FfxPoint worldPos, FfxNode _node) {
     _Scene *scene = _scene;
     _Node *node = _node;
 
@@ -130,7 +130,23 @@ static void _groupSequence(FfxScene _scene, FfxPoint worldPos, FfxNode _node) {
     }
 }
 
+static FfxNode _debug(FfxNode node, FfxNodeFunc func, char *descr,
+  size_t length) {
+
+    if (func.sequenceFunc == _groupSequence) {
+        FfxPoint *pos = ffx_scene_nodePosition(node);
+        FfxProperty *a = ffx_scene_nodePropertyA(node);
+        snprintf(descr, length,
+          "Group Sequence Node pos=(%d, %d)", pos->x, pos->y);
+        return a->ptr;
+    }
+
+    return NULL;
+}
+
 FfxNode ffx_scene_createGroup(FfxScene scene) {
+    REGISTER_DEBUG(_debug);
+
     FfxProperty a, b;
     a.ptr = b.ptr = NULL;
     return ffx_scene_createNode(scene, _groupSequence, a, b);

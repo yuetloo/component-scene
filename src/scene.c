@@ -33,16 +33,21 @@ static _Node* _addNode(_Scene *scene, FfxPoint pos) {
     return free;
 }
 
+// Only call _freeNode on SequenceNodes or RenderNodes; it is not
+// safe to call on AnimationNodes (except for the rare case during
+// AnimationNode creation, before the node has a `.animate` value).
 void _freeNode(_Scene *scene, _Node *node) {
 
     // Recycle any animation nodes
     _Node *head = node->animate.node;
     if (head) {
+        // Find the tail
         _Node *tail = head;
         while (tail && tail->nextNode) {
             tail = tail->nextNode;
         }
 
+        // Insert the animation sequence at the front of the free list
         tail->nextNode = scene->nextFree;
         scene->nextFree = head;
     }
@@ -72,6 +77,8 @@ FfxNode ffx_scene_createAnimationNode(FfxScene _scene, FfxNode _node, FfxPropert
 
     _Node *prop = _addNode(scene, PointZero);
     if (prop == NULL) {
+        // It is safe to call free on this animation node because
+        // its .animate has been cleared
         _freeNode(scene, animate);
         return NULL;
     }
@@ -255,12 +262,16 @@ int32_t ffx_scene_nodeSetTag(FfxNode _node, int32_t tag) {
 // returned but could still contain junk at any point.
 static FfxProperty junkProperty;
 
+FfxProperty* ffx_scene_junkProperty(char *nodeName, char *propName) {
+    printf("[%s] Warning: updating bad proeprty (%s)\n", nodeName, propName);
+    junkProperty.ptr = NULL;
+    return &junkProperty;
+}
+
 FfxPoint* ffx_scene_nodePosition(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) {
-        printf("[scene] Warning: updating bad proeprty (position)\n");
-        junkProperty.ptr = NULL;
-        return &junkProperty.point;
+        return &ffx_scene_junkProperty("node", "pos")->point;
     }
     return &node->pos;
 }
@@ -268,9 +279,7 @@ FfxPoint* ffx_scene_nodePosition(FfxNode _node) {
 FfxProperty* ffx_scene_nodePropertyA(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) {
-        printf("[scene] Warning: updating bad proeprty (a)\n");
-        junkProperty.ptr = NULL;
-        return &junkProperty;
+        return ffx_scene_junkProperty("node", "a");
     }
     return &node->a;
 }
@@ -278,9 +287,7 @@ FfxProperty* ffx_scene_nodePropertyA(FfxNode _node) {
 FfxProperty* ffx_scene_nodePropertyB(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) {
-        printf("[scene] Warning: updating bad proeprty (b)\n");
-        junkProperty.ptr = NULL;
-        return &junkProperty;
+        return ffx_scene_junkProperty("node", "b");
     }
     return &node->b;
 }

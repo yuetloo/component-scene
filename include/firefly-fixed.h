@@ -9,42 +9,42 @@ extern "C" {
 #include <stdint.h>
 
 
-typedef int32_t fixed_t;
+typedef int32_t fixed_ffxt;
 
 
 /**
  *  Fixed-point constants
  */
 
-extern const fixed_t FM_1;
+extern const fixed_ffxt FM_1;
 
-extern const fixed_t FM_PI_2;
-extern const fixed_t FM_PI;
-extern const fixed_t FM_3PI_2;
-extern const fixed_t FM_2PI;
+extern const fixed_ffxt FM_PI_2;
+extern const fixed_ffxt FM_PI;
+extern const fixed_ffxt FM_3PI_2;
+extern const fixed_ffxt FM_2PI;
 
-extern const fixed_t FM_E;
+extern const fixed_ffxt FM_E;
 
-extern const fixed_t FM_MAX;
-extern const fixed_t FM_MIN;
+extern const fixed_ffxt FM_MAX;
+extern const fixed_ffxt FM_MIN;
 
 
 /**
  *  Returns %%value%% as a fixed-point value with 0 as its
  *  decimals. e.g. toFx(1) == FM_1
  */
-fixed_t tofx(int32_t value);
+fixed_ffxt tofx(int32_t value);
 
-fixed_t divfx(fixed_t x, fixed_t y);
-fixed_t mulfx(fixed_t x, fixed_t y);
-int32_t scalarfx(int32_t scalar, fixed_t x);
+fixed_ffxt divfx(fixed_ffxt x, fixed_ffxt y);
+fixed_ffxt mulfx(fixed_ffxt x, fixed_ffxt y);
+int32_t scalarfx(int32_t scalar, fixed_ffxt x);
 
-fixed_t log2fx(fixed_t arg);
-fixed_t exp2fx(fixed_t arg);
-fixed_t powfx(fixed_t a, fixed_t b);
+fixed_ffxt log2fx(fixed_ffxt arg);
+fixed_ffxt exp2fx(fixed_ffxt arg);
+fixed_ffxt powfx(fixed_ffxt a, fixed_ffxt b);
 
-fixed_t sinfx(fixed_t x);
-fixed_t cosfx(fixed_t x);
+fixed_ffxt sinfx(fixed_ffxt x);
+fixed_ffxt cosfx(fixed_ffxt x);
 
 
 #ifdef __cplusplus

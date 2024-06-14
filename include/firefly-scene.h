@@ -111,31 +111,28 @@ FfxNode ffx_scene_createGroup(FfxScene scene);
 // Add a child to the end of the children for a parent GroupNode (created using scene_createGroup)
 void ffx_scene_appendChild(FfxNode parent, FfxNode child);
 
+
 // Create a FillNode, filling the entire screen with color
-FfxNode ffx_scene_createFill(FfxScene scene, uint16_t color);
-void ffx_scene_fillSetColor(FfxNode node, rgb16_t color);
-rgb16_t ffx_scene_fillColor(FfxNode node);
+FfxNode ffx_scene_createFill(FfxScene scene, color_ffxt color);
+color_ffxt* ffx_scene_fillColor(FfxNode node);
 
 uint32_t ffx_scene_fillAnimateColor(FfxScene scene, FfxNode node,
-    uint16_t targetColor, uint32_t duration, FfxCurveFunc curve,
+    color_ffxt target, uint32_t duration, FfxCurveFunc curve,
     FfxSceneAnimationCompletion onComplete);
+
 
 // Create a BoxNode with width and height filled with color.
-FfxNode ffx_scene_createBox(FfxScene scene, FfxSize size, uint16_t color);
-void ffx_scene_boxSetColor(FfxNode node, rgb16_t color);
-//void scene_boxSetColorAlpha(Node node, rgba_t color);
-void ffx_scene_boxSetSize(FfxNode node, FfxSize size);
-rgb16_t ffx_scene_boxColor(FfxNode node);
-FfxSize ffx_scene_boxGetSize(FfxNode node);
+FfxNode ffx_scene_createBox(FfxScene scene, FfxSize size, color_ffxt color);
+color_ffxt* ffx_scene_boxColor(FfxNode node);
+FfxSize* ffx_scene_boxGetSize(FfxNode node);
 
 uint32_t ffx_scene_boxAnimateColor(FfxScene scene, FfxNode node,
-    rgb16_t target, uint32_t duration, FfxCurveFunc curve,
+    color_ffxt target, uint32_t duration, FfxCurveFunc curve,
     FfxSceneAnimationCompletion onComplete);
-//uint32_t scene_boxAnimateColorAlpha(SceneContext scene, Node node,
-//    rgba16_t target, uint32_t duration, CurveFunc curve, SceneAnimationCompletion onComplete);
 uint32_t ffx_scene_boxAnimateSize(FfxScene scene, FfxNode node,
     FfxSize target, uint32_t duration, FfxCurveFunc curve,
     FfxSceneAnimationCompletion onComplete);
+
 
 // Images
 FfxNode ffx_scene_createImage(FfxScene scene, const uint16_t *data,
@@ -172,11 +169,11 @@ FfxNode ffx_scene_createTextAlloc(FfxScene scene, uint32_t textLength);
 void ffx_scene_textSetText(FfxNode node, const char* const text,
   uint32_t length);
 void ffx_scene_textSetTextInt(FfxNode node, int32_t value);
-void ffx_scene_textSetColor(FfxNode node, rgb16_t color);
+void ffx_scene_textSetColor(FfxNode node, rgb16_ffxt color);
 //void scene_textSetColorAlpha(Node node, rgba_t color);
 
 uint32_t ffx_scene_textAnimateColor(FfxScene scene, FfxNode node,
-    rgb16_t target, uint32_t duration, FfxCurveFunc curve,
+    rgb16_ffxt target, uint32_t duration, FfxCurveFunc curve,
     FfxSceneAnimationCompletion onComplete);
 //uint32_t scene_textAnimateColorAlpha(SceneContext scene, Node node,
 //    rgba_t target, uint32_t duration, CurveFunc curve, SceneAnimationCompletion onComplete);
