@@ -3,6 +3,10 @@ dependencies:
   idf:
     version: ">=4.1.0"
 
+  firefly-display:
+    path: ../../../../firefly-display
+
   # The local component being tested
   firefly-scene:
     path: ../../..
+
