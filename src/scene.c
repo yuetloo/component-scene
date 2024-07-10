@@ -25,7 +25,7 @@ static _Node* _addNode(_Scene *scene, FfxPoint pos) {
     }
 
     scene->nextFree = free->nextNode;
-    free->tag = 0;
+    //free->tag = 0;
     free->pos = pos;
     free->nextNode = NULL;
     free->animate.node = NULL;
@@ -236,16 +236,26 @@ void ffx_scene_stopAnimations(FfxNode _node, FfxSceneActionStop stopType) {
     node->animate.node->pos.y = stopType;
 }
 
+void ffx_scene_advanceAnimations(FfxNode _node, uint32_t advance) {
+    _Node *node = (_Node*)_node;
+    if (node == NULL || node->animate.node == NULL) { return; }
+
+    node->animate.node->pos.x = advance;
+    node->animate.node->pos.y = 0xfe;
+}
+
 
 //////////////////////////
 // Node
 
+/*
 int32_t ffx_scene_nodeTag(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) { return 0; }
     return node->tag;
 }
-
+*/
+/*
 int32_t ffx_scene_nodeSetTag(FfxNode _node, int32_t tag) {
     _Node *node = _node;
     if (node == NULL) {
@@ -256,14 +266,14 @@ int32_t ffx_scene_nodeSetTag(FfxNode _node, int32_t tag) {
     node->tag = tag;
     return oldTag;
 }
-
+*/
 // Setting a property of an invalid (NULL) node, will update
 // this rather than crash. It gets reset whenever it is
 // returned but could still contain junk at any point.
 static FfxProperty junkProperty;
 
 FfxProperty* ffx_scene_junkProperty(char *nodeName, char *propName) {
-    printf("[%s] Warning: updating bad proeprty (%s)\n", nodeName, propName);
+    printf("[%s] Warning: updating bad property (%s)\n", nodeName, propName);
     junkProperty.ptr = NULL;
     return &junkProperty;
 }

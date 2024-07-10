@@ -27,7 +27,7 @@ typedef struct _Node {
     struct _Node *nextNode;
 
     // User defined values
-    int32_t tag;
+    //int32_t tag;
 
     // Depends on the type of node:
     //  - Sequence    => List of [ Animate, PropAnimate ] nodes
