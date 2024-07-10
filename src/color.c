@@ -4,40 +4,20 @@
 
 // Color Format:
 //  - RGBA = 00AA AAAA  RRRR RRRR  GGGG GGGG  BBBB BBBB
-//  - HSVA = N1AA AAAA  HHHH HHHH  HHHH SSSS  SSVV VVVV   (N => negative hue)
-//  - Alpha is 0 for fully opaque and 0x20 for fully transparent
+//  - HSVA = 01AA AAAA  HHHH HHHH  HHHH SSSS  SSVV VVVV   (N => negative hue)
+//  - Alpha is 0 for fully opaque and 0x20 for fully transparent, so that
+//    a default value of 0 is fully opaque.
 
 
 #define COLOR_HSV          (0x40000000)
-#define NEGATIVE_HUE       (0x80000000)
 #define MASK_ALPHA         (0x3f000000)
-
-// OLD
-////  - RGBA = 00AA AAAA  RRRR RRRR  GGGG GGGG  BBBB BBBB
-////  - HSVA = 1NAA AAAA  HHHH HHHH  HHHH SSSS  SSVV VVVV   (N => negative hue)
-//#define HSV_HUE(c)           ((((c) >> 12) & 0xfff) *(_IS_HUE_NEGATIVE(c) ? -1: 1))
-//#define HSV_SAT(c)           (((c) >> 6) & 0x3f)
-//#define HSV_VAL(c)           ((c) & 0x3f)
-//#define ALPHA(c)             (0x3f - (((c) >> 24) & 0x3f))
-//#define CLAMP(v,m)     (((v) < 0) ? 0: ((v) > (m)) ? (m): (v))
-// Extract color components
-//#define _IS_HUE_NEGATIVE(c)  (!!((c) & 0x40000000))
-//#define IS_HSV(c)            (!!((c) & 0x80000000))
-//  - Idea: Alpha is 0 for fully opaque and 0x20 for fully transparent
 
 
 static uint32_t _getR(color_ffxt c) { return (c >> 16) & 0xff; }
 static uint32_t _getG(color_ffxt c) { return (c >> 8) & 0xff; }
 static uint32_t _getB(color_ffxt c) { return (c >> 0) & 0xff; }
 
-//static bool _isHSV(color_t c) { return c & COLOR_HSV; }
-
-static int32_t _getH(color_ffxt c) {
-    int32_t hue = (c >> 12) & 0xfff;
-    int32_t neg = 2 - (c >> 30);
-    return neg * hue;
-}
-
+static uint32_t _getH(color_ffxt c) { return (c >> 12) & 0xfff; }
 static uint32_t _getS(color_ffxt c) { return (c >> 6) & 0x3f; }
 static uint32_t _getV(color_ffxt c) { return (c >> 0) & 0x3f; }
 
@@ -59,11 +39,6 @@ color_ffxt ffx_color_rgb(int32_t r, int32_t g, int32_t b, int32_t alpha) {
 color_ffxt ffx_color_hsv(int32_t h, int32_t s, int32_t v, int32_t alpha) {
     color_ffxt result = COLOR_HSV;
 
-    if (h < 0) {
-        result |= NEGATIVE_HUE;
-        h *= -1;
-    }
-
     result |= (h % 3960) << 12;
     result |= CLAMP(s, 0x3f) << 6;
     result |= CLAMP(v, 0x3f);
@@ -78,65 +53,67 @@ color_ffxt ffx_color_hsv(int32_t h, int32_t s, int32_t v, int32_t alpha) {
 // Stores RGB888 as a uint32_t
 //#define RGB24(r,g,b)    ((rgb24_t)(((r) << 16) | ((g) << 8) | (b)))
 
-#define B6     (0x3f)
+#define B6        (0x3f)
+#define B8        (0xff)
+#define B11      (0x7ff)
+#define B17    (0x1ffff)
+
+#define B11_6    (0x7ff / 6)
+
+// @TODO: This an be optimized using only multiply and keeping the
+//        result in a fixed notation, like fixed 12:20.
 
 // Heavily inspired by: https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
 static color_ffxt _fromHSV(color_ffxt color) {
 
-    int32_t h = _getH(color);// ((color >> 12) & 0xfff);
-    int32_t s = _getS(color); //(color >> 6) & B6;
-    int32_t v = _getV(color); //color & B6;
-    //if (color & NEGATIVE_HUE) { h *= -1; }
-
-    // Normalize h to [0, 359]; max h is 12 bits, so scale well past that
-    h = (h + 360000) % 360;
-
-    int32_t region = h / 60;
-    int32_t rem = (h - (region * 60));
-
-    // Normalize value to a byte
-    v = (v * 255) / B6;
-
-    // Notes:
-    //  - v, p, and q MUST all be [0, 255] for the RGB mapping
-    //  - s is [0, 63]
-    //  - rem is [0, 59]
-    //  - v, s and rem represent values [0, 1] multiplied by their multiplier
-    //    - so (63 - s) is the equivlent of (1.0 - s_)
-    //    - (v * s) / (255 * 63) is equivalent of (v_ * s_)
-
-    // Mask out the two HSV-specific bits; keep the alpha
+    // Mask out the HSV-specific bits; keep the alpha
     color_ffxt result = color & MASK_ALPHA;
 
-    int32_t p = (v * (63 - s)) / 63, q;
+    // Normalized to [0, 63] (6-bits)
+    int32_t s = _getS(color);
+
+    // Normalize v to [0, 255] (8-bits)
+    int32_t v = (_getV(color) * B8) / B6;
+
+    if (s == 0) { 
+        result |= (v << 16) | (v << 8) | v;
+        return result;
+    }
+
+    // Normalize s to [0, 2047] (11-bits); which has an error of 0.1666
+    int32_t h = ((_getH(color) % 360) * B11) / 360;
+
+    // Normalized to [0, 2047] (11-bits)
+    int32_t region = h / B11_6;
+    int32_t rem = (h - (region * B11_6)) * 6;
+
+    int32_t p = (v * (B6 - s)) >> 6;
+    int32_t t = (v * (B17 - (s * (B11 - rem)))) >> 17;
+    int32_t q = (v * (B17 - (s * rem))) >> 17;
 
     // Map the RGB value based on the region
     switch (region) {
         case 0:
-            q = (v * ((63 * 59) - (s * (59 - rem)))) / (63 * 59);
-            result |= (v << 16) | (q << 8) | p;
+            result |= (v << 16) | (t << 8) | p;
             break;
         case 1:
-            q = (v * ((63 * 59) - (s * rem))) / (63 * 59);
             result |= (q << 16) | (v << 8) | p;
             break;
         case 2:
-            q = (v * ((63 * 59) - (s * (59 - rem)))) / (63 * 59);
-            result |= (p << 16) | (v << 8) | q;
+            result |= (p << 16) | (v << 8) | t;
             break;
         case 3:
-            q = (v * ((63 * 59) - (s * rem))) / (63 * 59);
             result |= (p << 16) | (q << 8) | v;
             break;
         case 4:
-            q = (v * ((63 * 59) - (s * (59 - rem)))) / (63 * 59);
-            result |= (q << 16) | (p << 8) | v;
+            result |= (t << 16) | (p << 8) | v;
             break;
         case 5:
-            q = (v * ((63 * 59) - (s * rem))) / (63 * 59);
             result |= (v << 16) | (p << 8) | q;
             break;
     }
+
+//printf("h=%ld s=%ld v=%ld region=%ld rem=%ld p=%ld qt=%ld\n", h, s, v, region, rem, p, qt);
 
     return result;
 }
@@ -245,6 +222,21 @@ color_ffxt ffx_color_lerpRatio(color_ffxt c0, color_ffxt c1,
     return ffx_color_rgb(r, g, b, a);
 }
 
+color_ffxt ffx_color_lerpColorRamp(color_ffxt *colors, size_t count,
+  fixed_ffxt t) {
+
+    int32_t index = scalarfx(count - 1, t);
+    if (index < 0) {
+        return colors[0];
+    } else if (index >= count - 1) {
+        return colors[count - 1];
+    }
+
+    color_ffxt c0 = colors[index];
+    color_ffxt c1 = colors[index + 1];
+
+    return ffx_color_lerpfx(c0, c1, (t * (count - 1)) - tofx(index));
+}
 /*
 rgba16_t ffx_color_blend16(color_t fg, color_t bg) {
     uint32_t fga = ALPHA(fg);
@@ -255,13 +247,13 @@ rgba16_t ffx_color_blend16(color_t fg, color_t bg) {
 */
 
 color_ffxt ffx_color_rgb2hsv(color_ffxt color) {
-    if (color & COLOR_HSV) { return _fromRGB(color); }
+    if (!(color & COLOR_HSV)) { return _fromRGB(color); }
     return color;
 }
 
 color_ffxt ffx_color_hsv2rgb(color_ffxt color) {
-    if (color & COLOR_HSV) { return color; }
-    return _fromHSV(color);
+    if (color & COLOR_HSV) { return _fromHSV(color); }
+    return color; 
 }
 
 size_t ffx_color_name(color_ffxt c, char *name, size_t length) {
@@ -274,6 +266,27 @@ size_t ffx_color_name(color_ffxt c, char *name, size_t length) {
       _getR(c), _getG(c), _getB(c), _getA(c));
 }
 
+FfxColorHSV ffx_color_parseHSV(color_ffxt color) {
+    if (!(color & COLOR_HSV)) { color = _fromRGB(color); }
+
+    FfxColorHSV hsv;
+    hsv.hue = _getH(color);
+    hsv.saturation = _getS(color);
+    hsv.value = _getV(color);
+    hsv.alpha = _getA(color);
+    return hsv;
+}
+
+FfxColorRGB ffx_color_parseRGB(color_ffxt color) {
+    if (color & COLOR_HSV) { color = _fromHSV(color); }
+
+    FfxColorRGB rgb;
+    rgb.red = _getR(color);
+    rgb.blue = _getB(color);
+    rgb.green = _getG(color);
+    rgb.alpha = _getA(color);
+    return rgb;
+}
 
 // Test program to validate HSV conversion
 /*
