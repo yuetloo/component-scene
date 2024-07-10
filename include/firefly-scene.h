@@ -67,11 +67,11 @@ typedef void (*FfxSceneAnimationCompletion)(FfxScene scene,
 // } SceneFilter;
 
 
-// Allocate a new SceneContext
+// Allocate a new Scene
 FfxScene ffx_scene_init(uint32_t nodeCount);
-//SceneContext scene_initStatic(uint8_t *data, uint32_t dataLength);
+//Scene scene_initStatic(uint8_t *data, uint32_t dataLength);
 
-// Release a ScreenContext created using scene_init.
+// Release a Screen created using scene_init.
 void ffx_scene_free(FfxScene scene);
 
 // Debugging; dump the scene graph to the console
@@ -87,6 +87,7 @@ FfxNode ffx_scene_root(FfxScene scene);
 
 // Returns true if node is running any animations
 uint32_t ffx_scene_isRunningAnimation(FfxNode node);
+void ffx_scene_advanceAnimations(FfxNode _node, uint32_t advance);
 
 // Stop all current animations on a node
 void ffx_scene_stopAnimations(FfxNode node, FfxSceneActionStop stopType);
@@ -94,8 +95,8 @@ void ffx_scene_stopAnimations(FfxNode node, FfxSceneActionStop stopType);
 // Schedule the node to be freed on the next sequence
 void ffx_scene_nodeFree(FfxNode node);
 
-int32_t ffx_scene_nodeTag(FfxNode node);
-int32_t ffx_scene_nodeSetTag(FfxNode node, int32_t tag);
+//int32_t ffx_scene_nodeTag(FfxNode node);
+//int32_t ffx_scene_nodeSetTag(FfxNode node, int32_t tag);
 
 // Move a node within the scene (with respect to its parents in the hierarchy)
 //void ffx_scene_nodeSetPosition(FfxNode node, FfxPoint pos);
@@ -111,6 +112,8 @@ FfxNode ffx_scene_createGroup(FfxScene scene);
 // Add a child to the end of the children for a parent GroupNode (created using scene_createGroup)
 void ffx_scene_appendChild(FfxNode parent, FfxNode child);
 
+FfxNode ffx_scene_groupFirstChild(FfxNode _node);
+FfxNode ffx_scene_nodeNextSibling(FfxNode _node);
 
 // Create a FillNode, filling the entire screen with color
 FfxNode ffx_scene_createFill(FfxScene scene, color_ffxt color);
@@ -136,13 +139,17 @@ uint32_t ffx_scene_boxAnimateSize(FfxScene scene, FfxNode node,
 
 // Images
 FfxNode ffx_scene_createImage(FfxScene scene, const uint16_t *data,
-  uint32_t dataLength);
+  size_t dataLength);
 uint16_t* ffx_scene_imageData(FfxNode node);
-FfxSize ffx_scene_imageSize(FfxNode node);
+color_ffxt* ffx_scene_imageColor(FfxNode node);
+
+//FfxSize ffx_scene_imageSize(FfxNode node);
+
+uint32_t ffx_scene_imageAnimateAlpha(FfxScene scene, FfxNode node, uint32_t target, uint32_t duration, FfxCurveFunc curve, FfxSceneAnimationCompletion onComplete);
 
 // A spritesheet is a 32x32 tile node where each tile is an index into the spriteData for that position
 // - The spriteData is a 256 2-byte entries
-// Node scene_createSpritesheet(SceneContext context, uint8_t *spriteData);
+// Node scene_createSpritesheet(Scene scene, uint8_t *spriteData);
 // void scene_spriteheetSetSprite(Node spritesheet, uint8_t ix, uint8_t iy, uint8_t index);
 // uint8_t *scene_spritesheetGetIndices(Node spritesheet);
 
@@ -175,7 +182,7 @@ void ffx_scene_textSetColor(FfxNode node, rgb16_ffxt color);
 uint32_t ffx_scene_textAnimateColor(FfxScene scene, FfxNode node,
     rgb16_ffxt target, uint32_t duration, FfxCurveFunc curve,
     FfxSceneAnimationCompletion onComplete);
-//uint32_t scene_textAnimateColorAlpha(SceneContext scene, Node node,
+//uint32_t scene_textAnimateColorAlpha(Scene scene, Node node,
 //    rgba_t target, uint32_t duration, CurveFunc curve, SceneAnimationCompletion onComplete);
 
 
