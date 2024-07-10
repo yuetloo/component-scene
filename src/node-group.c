@@ -32,8 +32,6 @@ static void _updateAnimations(_Scene *scene, _Node *node) {
     // No animations
     if (animate == NULL) { return; }
 
-    //int32_t now = xTaskGetTickCount();
-    //scene->tick = now;
     int32_t now = scene->tick;
 
     _Node *lastAnimate = NULL;
@@ -47,14 +45,30 @@ static void _updateAnimations(_Scene *scene, _Node *node) {
         _Node *prop = animate->nextNode;
         _Node *nextAnimate = prop->nextNode;
 
-        if (stopType == FfxSceneActionStopNormal) { stopType = animate->pos.y; }
+        if (stopType == FfxSceneActionStopNormal) {
+            stopType = animate->pos.y;
+
+            // Animation advance
+            if (stopType == 0xfe) {
+                stopType = FfxSceneActionStopNormal;
+
+                animate->b.i32 -= animate->pos.x;
+                endTime = animate->b.i32;
+
+                animate->pos.x = 0;
+                animate->pos.y = FfxSceneActionStopNormal;
+            }
+        }
         if (stopType) { endTime = now; }
 
         if (stopType != FfxSceneActionStopCurrent) {
+
             // Compute the curve-adjusted t
-            // fixed_ffxt t = FM_1 - divfx((endTime - now) << 16, duration << 16);
-            fixed_ffxt t = FM_1 - (tofx(endTime - now) / duration);
-            if (t >= FM_1) { t = FM_1; }
+            fixed_ffxt t = FM_1;
+            if (endTime > now) {
+                t = FM_1 - (tofx(endTime - now) / duration);
+                if (t > FM_1) { t = FM_1; }
+            }
 
             t = prop->func.curveFunc(t);
 
@@ -175,4 +189,16 @@ void ffx_scene_appendChild(FfxNode _parent, FfxNode _child) {
         lastChild->nextNode = child;
         parent->b.ptr = child;
     }
+}
+
+FfxNode ffx_scene_groupFirstChild(FfxNode _node) {
+    if (_node == NULL) { return NULL; }
+    _Node *node = _node;
+    return node->a.ptr;
+}
+
+FfxNode ffx_scene_nodeNextSibling(FfxNode _node) {
+    if (_node == NULL) { return NULL; }
+    _Node *node = _node;
+    return node->nextNode;
 }
