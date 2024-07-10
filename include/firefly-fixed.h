@@ -34,6 +34,7 @@ extern const fixed_ffxt FM_MIN;
  *  decimals. e.g. toFx(1) == FM_1
  */
 fixed_ffxt tofx(int32_t value);
+fixed_ffxt ratiofx(int32_t top, int32_t bottom);
 
 fixed_ffxt divfx(fixed_ffxt x, fixed_ffxt y);
 fixed_ffxt mulfx(fixed_ffxt x, fixed_ffxt y);

@@ -18,6 +18,10 @@ fixed_ffxt tofx(int32_t value) {
     return value << 16;
 }
 
+fixed_ffxt ratiofx(int32_t top, int32_t bottom) {
+    return (top << 16) / bottom;
+}
+
 static uint32_t umul32hi(uint32_t a, uint32_t b) {
     return (uint32_t)(((uint64_t)a * b) >> 32);
 }
