@@ -1,0 +1,4 @@
+build/**
+dist/**
+
+.iterm2-project
