@@ -22,17 +22,6 @@ static void delay(uint32_t duration) {
 }
 
 void renderScene(uint8_t *fragment, uint32_t y0, void *context) {
-    /*
-    for (int x = 0; x < FfxDisplayFragmentWidth; x++) {
-      color_ffxt color = ffx_color_hsv(360 * x / 240, 63, 63 * y0 / 240, 63);
-      rgb16_ffxt rgb = ffx_color_rgb16(color);
-      for (int y = 0; y < FfxDisplayFragmentHeight; y++) {
-        uint32_t offset = 2 * (y * 240 + x);
-        fragment[offset + 0] = rgb >> 8;
-        fragment[offset + 1] = rgb & 0xff;
-      }
-    }
-    */
     FfxScene scene = context;
     ffx_scene_render(scene, fragment, y0, FfxDisplayFragmentHeight);
 }
@@ -72,7 +61,7 @@ void taskAppFunc(void *pvParameter) {
   ffx_scene_dump(scene);
 
   FfxDisplayContext display = ffx_display_init(DISPLAY_BUS, PIN_DISPLAY_DC,
-    PIN_DISPLAY_RESET, FfxDisplayRotationPinsLeft, renderScene, scene);
+    PIN_DISPLAY_RESET, FfxDisplayRotationRibbonRight, renderScene, scene);
   printf("[app] init display\n");
 
   TickType_t lastFrameTime = xTaskGetTickCount();
