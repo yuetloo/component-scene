@@ -59,8 +59,8 @@ export class ImageRGBA {
     _addRgb(data) {
         for (let i = 0; i < __classPrivateFieldGet(this, _ImageRGBA_pixels, "f").length; i++) {
             const [a, b] = rgb565(__classPrivateFieldGet(this, _ImageRGBA_pixels, "f")[i]);
-            data.push(b);
             data.push(a);
+            data.push(b);
         }
     }
     get bytes() {

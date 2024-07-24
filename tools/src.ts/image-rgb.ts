@@ -74,8 +74,8 @@ export class ImageRGBA implements Image {
     _addRgb(data: Array<number>): void {
         for (let i = 0; i < this.#pixels.length; i++) {
             const [ a, b ] = rgb565(this.#pixels[i]);
-            data.push(b);
             data.push(a);
+            data.push(b);
         }
     }
 

@@ -37,18 +37,12 @@ static void _renderDark50(FfxPoint pos, FfxProperty a, FfxProperty b, uint16_t *
     if (sy + h > height) { h = height - sy; }
     if (sx + w > 240) { w = 240 - sx; }
 
-//    rgb16_ffxt _color = ffx_color_rgb16(b.color);
-//    uint16_t color = __builtin_bswap16(_color & 0xffff);
-
-    //uint16_t color = b.u32;
     for (uint32_t y = 0; y < h; y++) {
         uint16_t *output = &frameBuffer[240 * (sy + y) + sx];
         for (uint32_t x = 0; x < w; x++) {
-            uint16_t current = *output;
-            current = (current << 8) | (current >> 8);
-            current = ((current & 0xf000) >> 1) | ((current & 0x07c0) >> 1) | ((current & 0x001e) >> 1);
-            current = (current << 8) | (current >> 8);
-            *output++ = current;
+            // (RRRR 0GGG G0BB BBB0) >> 1
+            uint16_t darker = ((*output) & 0xf7be) >> 1;
+            *output++ = darker;
         }
     }
 }
@@ -80,18 +74,12 @@ static void _renderDark75(FfxPoint pos, FfxProperty a, FfxProperty b, uint16_t *
     if (sy + h > height) { h = height - sy; }
     if (sx + w > 240) { w = 240 - sx; }
 
-//    rgb16_ffxt _color = ffx_color_rgb16(b.color);
-//    uint16_t color = __builtin_bswap16(_color & 0xffff);
-
-    //uint16_t color = b.u32;
     for (uint32_t y = 0; y < h; y++) {
         uint16_t *output = &frameBuffer[240 * (sy + y) + sx];
         for (uint32_t x = 0; x < w; x++) {
-            uint16_t current = *output;
-            current = (current << 8) | (current >> 8);
-            current = ((current & 0xe000) >> 2) | ((current & 0x0780) >> 2) | ((current & 0x001c) >> 2);
-            current = (current << 8) | (current >> 8);
-            *output++ = current;
+            // (RRR0 0GGG G00B BB00) >> 2
+            uint16_t darker = ((*output) & 0xe79c) >> 2;
+            *output++ = darker;
         }
     }
 }
@@ -124,17 +112,11 @@ static void _render(FfxPoint pos, FfxProperty a, FfxProperty b, uint16_t *frameB
     if (sx + w > 240) { w = 240 - sx; }
 
     rgb16_ffxt _color = ffx_color_rgb16(b.color);
-    uint16_t color = __builtin_bswap16(_color & 0xffff);
+    uint16_t color = _color & 0xffff;
 
-    //uint16_t color = b.u32;
     for (uint32_t y = 0; y < h; y++) {
         uint16_t *output = &frameBuffer[240 * (sy + y) + sx];
         for (uint32_t x = 0; x < w; x++) {
-//            uint16_t current = *output;
-//            current = (current << 8) | (current >> 8);
-//            current = ((current & 0xf000) >> 1) | ((current & 0x07c0) >> 1) | ((current & 0x001e) >> 1);
-//            current = (current << 8) | (current >> 8);
-//            *output++ = current;
               *output++ = color;
         }
     }

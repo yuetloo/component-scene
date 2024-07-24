@@ -121,6 +121,8 @@ static  void _imageRenderRGBA5654(FfxPoint pos, FfxProperty a, FfxProperty b,
 
     int32_t ga = (b.color >> 24);
 
+    // @TODO: Lots of optimizations to be had here; use mul instead of div
+
     for (int32_t y = oh; y; y--) {
         uint16_t *output = &frameBuffer[(240 * (oy + y - 1)) + ox];
         uint16_t *input = &data[((iy + y - 1) * w) + ix];
@@ -128,8 +130,6 @@ static  void _imageRenderRGBA5654(FfxPoint pos, FfxProperty a, FfxProperty b,
         for (int32_t x = ow; x; x--) {
             uint16_t fg = *input++;
             uint16_t bg = *output;
-            fg = (fg << 8) | (fg >> 8);
-            bg = (bg << 8) | (bg >> 8);
 
             uint16_t a = (alpha[ia / 4] >> (12 - 4 * (ia % 4))) & 0x0f;
             ia++;
@@ -139,6 +139,7 @@ static  void _imageRenderRGBA5654(FfxPoint pos, FfxProperty a, FfxProperty b,
 
             if (mulA == 0x10000) {
                 *output = fg;
+
             } else if (mulA != 0) {
                 int32_t mulAi = 0x10000 - mulA;
 
@@ -154,15 +155,10 @@ static  void _imageRenderRGBA5654(FfxPoint pos, FfxProperty a, FfxProperty b,
                 int blendG = ((mulAi * bgG) + (mulA * fgG)) >> 16;
                 int blendB = ((mulAi * bgB) + (mulA * fgB)) >> 16;
 
-                uint16_t blend = (blendR << 11) | (blendG << 5) | (blendB);
-                blend = (blend << 8) | (blend >> 8);
-
-                *output = blend;
+                *output = (blendR << 11) | (blendG << 5) | blendB;
             }
 
             output++;
-
-            // *output++ = *input++;
         }
     }
 }

@@ -12,7 +12,7 @@
 
 
 static void _render(FfxPoint pos, FfxProperty a, FfxProperty b, uint16_t *_frameBuffer, int32_t y0, int32_t height) {
-    uint32_t c = __builtin_bswap16(ffx_color_rgb16(a.color));
+    uint32_t c = ffx_color_rgb16(a.color);
     c = ((c << 16) | c);
 
     uint32_t *frameBuffer = (uint32_t*)_frameBuffer;
