@@ -1,9 +1,8 @@
 
-export interface Image {
-    width: number;
-    height: number;
-    bytes: Uint8Array;
-}
+import type { JimpInstance } from "jimp";
+
+import type { RGBA } from "./color.js";
+
 
 export const VERSION_TAG      = 0x01
 
@@ -22,3 +21,40 @@ export const FORMAT_PALETTE2  = 0x18;
 export const FORMAT_PALETTE4  = 0x28;
 export const FORMAT_PALETTE8  = 0x38;
 
+
+export interface Image {
+    width: number;
+    height: number;
+    bytes: Uint8Array;
+}
+
+export type ImageData = {
+    width: number;
+    height: number;
+    pixels: Array<RGBA>;
+};
+
+/*
+import type { BitMap } from "@jimp/types";
+
+export type JimpType {
+    bitmap: Bitmap;
+    height: number;
+    width: number;
+}
+*/
+export function getPixels(jimp: JimpInstance): ImageData {
+    const { data, width, height } = jimp.bitmap;
+
+    const size = width * height;
+    const pixels: Array<RGBA> = [ ];
+    for (let i = 0; i < size; i++) {
+        const r = data[4 * i + 0];
+        const g = data[4 * i + 1];
+        const b = data[4 * i + 2];
+        const a = data[4 * i + 3];
+        pixels.push({ r, g, b, a });
+    }
+
+    return { width, height, pixels };
+}

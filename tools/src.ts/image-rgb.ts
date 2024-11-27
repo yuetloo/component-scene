@@ -1,32 +1,14 @@
-import Jimp from "jimp";
 
 import { alpha4, rgb565 } from "./color.js"
-import { FORMAT_ALPHA, FORMAT_RGB565, VERSION_TAG } from "./image.js";
+import {
+    FORMAT_ALPHA, FORMAT_RGB565, VERSION_TAG,
+    getPixels
+} from "./image.js";
+
+import type { JimpInstance } from "jimp";
 
 import type { RGBA } from "./color.js";
 import type { Image } from "./image.js";
-
-export type ImageData = {
-    width: number;
-    height: number;
-    pixels: Array<RGBA>;
-};
-
-function getPixels(jimp: Jimp): ImageData {
-    const { data, width, height } = jimp.bitmap;
-
-    const size = width * height;
-    const pixels: Array<RGBA> = [ ];
-    for (let i = 0; i < size; i++) {
-        const r = data[4 * i + 0];
-        const g = data[4 * i + 1];
-        const b = data[4 * i + 2];
-        const a = data[4 * i + 3];
-        pixels.push({ r, g, b, a });
-    }
-
-    return { width, height, pixels };
-}
 
 export class ImageRGBA implements Image {
     readonly width: number;
@@ -63,7 +45,7 @@ export class ImageRGBA implements Image {
 
         data.push(skip >> 8);
         data.push(skip & 0xff);
-        console.log(`// SKIP: ${ skip}`);
+        console.log(`// SKIP: ${ skip }`);
 
         for (let i = 0; i < pixels.length; i += 2) {
             const a = alpha4(pixels[i].a), b = alpha4(pixels[i + 1].a);
@@ -90,7 +72,7 @@ export class ImageRGBA implements Image {
         return new Uint8Array(data);
     }
 
-    static fromImage(jimp: Jimp) {
+    static fromImage(jimp: JimpInstance) {
         const { width, height, pixels } = getPixels(jimp);
         return new this(width, height, pixels);
     }

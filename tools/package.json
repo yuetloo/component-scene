@@ -15,11 +15,13 @@
   "author": "Richard Moore <me@ricmoo.com>",
   "license": "MIT",
   "dependencies": {
-    "jimp": "^0.22.12"
+    "gifwrap": "^0.10.1",
+    "jimp": "^1.6.0"
   },
   "type": "module",
   "devDependencies": {
     "@types/node": "^20.3.1",
+    "@types/pngjs": "^6.0.5",
     "typescript": "^5.1.3"
   }
 }
