@@ -12,7 +12,9 @@ const fixed_ffxt FM_MAX    = 0x7fffffff;
 const fixed_ffxt FM_MIN    = 0x80000000;
 
 const fixed_ffxt FM_1      =    0x10000;
-
+const fixed_ffxt FM_1_2    =     0x8000;
+const fixed_ffxt FM_1_4    =     0x4000;
+const fixed_ffxt FM_1_8    =     0x2000;
 
 fixed_ffxt tofx(int32_t value) {
     return value << 16;

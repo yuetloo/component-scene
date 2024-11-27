@@ -6,12 +6,9 @@
 #include "firefly-curves.h"
 
 
-const fixed_ffxt FM_1_2    =     0x8000;
-const fixed_ffxt FM_1_4    =     0x4000;
-
-const fixed_ffxt FM_2      =    0x20000;
-const fixed_ffxt FM_10     =    0xa0000;
-const fixed_ffxt FM_20     =   0x140000;
+static const fixed_ffxt FM_2      =    0x20000;
+static const fixed_ffxt FM_10     =    0xa0000;
+static const fixed_ffxt FM_20     =   0x140000;
 
 
 fixed_ffxt FfxCurveLinear(fixed_ffxt t) { return t; }

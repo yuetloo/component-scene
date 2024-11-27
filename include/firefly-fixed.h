@@ -17,6 +17,9 @@ typedef int32_t fixed_ffxt;
  */
 
 extern const fixed_ffxt FM_1;
+extern const fixed_ffxt FM_1_2;
+extern const fixed_ffxt FM_1_4;
+extern const fixed_ffxt FM_1_8;
 
 extern const fixed_ffxt FM_PI_2;
 extern const fixed_ffxt FM_PI;
