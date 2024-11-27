@@ -2,4 +2,6 @@ build/**
 dist/**
 **/*.swp
 
+**/.DS_Store
+
 .iterm2-project
