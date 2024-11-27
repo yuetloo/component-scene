@@ -286,6 +286,12 @@ FfxPoint* ffx_scene_nodePosition(FfxNode _node) {
     return &node->pos;
 }
 
+void ffx_scene_nodeSetPosition(FfxNode node, FfxPoint point) {
+    FfxPoint *p = ffx_scene_nodePosition(node);
+    p->x = point.x;
+    p->y = point.y;
+}
+
 FfxProperty* ffx_scene_nodePropertyA(FfxNode _node) {
     _Node *node = _node;
     if (node == NULL) {

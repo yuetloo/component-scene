@@ -241,18 +241,9 @@ static  void _textRender(FfxPoint pos, FfxProperty a, FfxProperty b, uint16_t *f
 }
 
 static void _textSequence(FfxScene scene, FfxPoint worldPos, FfxNode node) {
-    // @TODO: Don't do this; use the external API
-    //_Scene *scene = _scene;
-    //_Node *node = _node;
-
     FfxNode render = ffx_scene_createRenderNode(scene, node, worldPos, _textRender);
     if (render == NULL) { return; }
-    /*
-    _Node *render = _addRenderNode(scene, node, worldPos, _textRender);
-    if (render == NULL) { return; }
-    render->a = node->a;
-    render->b = node->b;
-    */
+
     FfxProperty *b = ffx_scene_nodePropertyB(node);
 
     // @TODO: Double check this access; pointers to unions
@@ -274,6 +265,10 @@ FfxNode ffx_scene_createText(FfxScene scene, const char* data, uint32_t dataLeng
     b.text = info;
 
     return ffx_scene_createNode(scene, _textSequence, a, b);
+}
+
+FfxNode ffx_scene_createTextStr(FfxScene scene, const char* text) {
+    return ffx_scene_createText(scene, text, strlen(text));
 }
 
 FfxNode ffx_scene_createTextFlip(FfxScene scene, char* data, uint32_t dataLength) {
@@ -311,6 +306,20 @@ void ffx_scene_textSetText(FfxNode node, const char* const text, uint32_t _lengt
     FfxProperty *a = ffx_scene_nodePropertyA(node);
 
     strncpy((char*)(&a->data[info->length]), text, length);
+}
+
+size_t ffx_scene_textGetText(FfxNode node, char *text, size_t _length) {
+    if (node == NULL) { return 0; }
+
+    FfxProperty *a = ffx_scene_nodePropertyA(node);
+    FfxProperty *b = ffx_scene_nodePropertyB(node);
+
+    uint32_t length = b->text.length;
+    if (_length < length) { length = _length; }
+
+    strncpy(text, (char*)a->data, length);
+
+    return length;
 }
 
 void ffx_scene_textSetTextInt(FfxNode node, int32_t value) {

@@ -23,7 +23,6 @@ static  void _imageRenderRGB565(FfxPoint pos, FfxProperty a, FfxProperty b,
   uint16_t *frameBuffer, int32_t y0, int32_t height) {
 
     uint16_t *data = (uint16_t*)(a.ptr);
-    
 
     // printf("SS: %d %d", b.size.width, b.size.height);
 
@@ -74,6 +73,63 @@ static  void _imageRenderRGB565(FfxPoint pos, FfxProperty a, FfxProperty b,
     }
 }
 
+static  void _imageRenderPal8(FfxPoint pos, FfxProperty a, FfxProperty b,
+  uint16_t *frameBuffer, int32_t y0, int32_t height) {
+
+    uint16_t *data = (uint16_t*)(a.ptr);
+
+    uint16_t *palette = &data[3];
+    uint8_t *pixels = (uint8_t*)&data[3 + 256];
+
+    // printf("SS: %d %d", b.size.width, b.size.height);
+
+    // @TODO: Move quick checks to _sequence?
+
+    // The box is above the fragment or to the right of the display; skip
+    if (pos.y >= y0 + height || pos.x >= 240) { return; }
+
+    // Compute start y and height within the fragment
+    int32_t iy = 0;
+    int32_t oy = pos.y - y0;
+    //int32_t oh = b.size.height;
+    int32_t oh = data[2];
+    if (oy < 0) {
+        iy -= oy;
+        oh += oy;
+        oy = 0;
+    }
+    if (oh <= 0) { return; }
+
+    // Compute the start x and width within the fragment
+    int32_t ix = 0;
+    int32_t ox = pos.x;
+    //const int32_t w = b.size.width;
+    const int32_t w = data[1];
+    int32_t ow = w;
+    if (ox < 0) {
+        ix -= ox;
+        ow += ox;
+        ox = 0;
+    }
+    if (ow <= 0) { return; }
+
+    // Extends past the fragment bounds; shrink
+    if (oy + oh > height) { oh = height - oy; }
+    if (ox + ow > 240) { ow = 240 - ox; }
+
+    // Skip the header bytes
+    //ix += 3;
+    //data += 3;
+
+    for (int32_t y = oh; y; y--) {
+        uint16_t *output = &frameBuffer[(240 * (oy + y - 1)) + ox];
+        uint8_t *input = &pixels[((iy + y - 1) * w) + ix];
+        for (int32_t x = ow; x; x--) {
+            *output++ = palette[*input++];
+        }
+    }
+}
+
 static  void _imageRenderRGBA5654(FfxPoint pos, FfxProperty a, FfxProperty b,
   uint16_t *frameBuffer, int32_t y0, int32_t height) {
     // The box is above the fragment or to the right of the display; skip
@@ -108,16 +164,12 @@ static  void _imageRenderRGBA5654(FfxPoint pos, FfxProperty a, FfxProperty b,
     if (oy + oh > height) { oh = height - oy; }
     if (ox + ow > 240) { ow = 240 - ox; }
 
-    // Skip the header bytes
-    //ix += 3;
-
     uint16_t *alpha = (uint16_t*)(a.ptr);
     alpha += 3;
     uint16_t alphaCount = alpha[0];
     alpha++;
 
-    //uint16_t *data = (uint16_t*)(a.ptr);
-    data += alphaCount + 3;
+    data += alphaCount + 3 + 1;
 
     int32_t ga = (b.color >> 24);
 
@@ -176,6 +228,15 @@ static void _imageSequenceRGBA5654(FfxScene scene, FfxPoint worldPos, FfxNode no
     ffx_scene_createRenderNode(scene, node, worldPos, _imageRenderRGBA5654);
 }
 
+static void _imageSequencePal8(FfxScene scene, FfxPoint worldPos, FfxNode node) {
+    // 100% transparent
+    //color_ffxt *color = ffx_scene_imageColor(node);
+    //int32_t ga = (*color >> 24);
+    //if (ga == 0) { return; }
+
+    ffx_scene_createRenderNode(scene, node, worldPos, _imageRenderPal8);
+}
+
 static FfxSize _imageValidate(const uint16_t *data, size_t dataLength) {
     FfxSize size;
     size.width = data[1];
@@ -201,6 +262,8 @@ FfxNode ffx_scene_createImage(FfxScene scene, const uint16_t *data,
         return ffx_scene_createNode(scene, _imageSequenceRGBA5654, a, b);
     } else if ((data[0] & 0x0f) == 0x04) {
         return ffx_scene_createNode(scene, _imageSequenceRGB565, a, b);
+    } else if ((data[0] & 0xff) == 0x38) {
+        return ffx_scene_createNode(scene, _imageSequencePal8, a, b);
     }
 
     return NULL;
@@ -220,6 +283,16 @@ FfxNode ffx_scene_createImage(FfxScene scene, const uint16_t *data,
 uint16_t* ffx_scene_imageData(FfxNode node) {
     FfxProperty *a = ffx_scene_nodePropertyA(node);
     return a->ptr;
+}
+
+void ffx_scene_imageSetData(FfxNode node, const uint16_t *data,
+  size_t dataLength) {
+
+    FfxSize size = _imageValidate(data, dataLength);
+    if (size.width == 0 || size.height == 0) { return; }
+
+    FfxProperty *a = ffx_scene_nodePropertyA(node);
+    a->ptr = (void*)data;
 }
 
 color_ffxt* ffx_scene_imageColor(FfxNode node) {

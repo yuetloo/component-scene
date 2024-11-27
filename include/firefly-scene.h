@@ -102,6 +102,8 @@ void ffx_scene_nodeFree(FfxNode node);
 //void ffx_scene_nodeSetPosition(FfxNode node, FfxPoint pos);
 FfxPoint* ffx_scene_nodePosition(FfxNode node);
 
+void ffx_scene_nodeSetPosition(FfxNode node, FfxPoint point);
+
 uint32_t ffx_scene_nodeAnimatePosition(FfxScene scene, FfxNode node,
     FfxPoint target, uint32_t duration, FfxCurveFunc curve,
     FfxSceneAnimationCompletion onComplete);
@@ -141,6 +143,8 @@ uint32_t ffx_scene_boxAnimateSize(FfxScene scene, FfxNode node,
 FfxNode ffx_scene_createImage(FfxScene scene, const uint16_t *data,
   size_t dataLength);
 uint16_t* ffx_scene_imageData(FfxNode node);
+void ffx_scene_imageSetData(FfxNode node, const uint16_t *data,
+  size_t dataLength);
 color_ffxt* ffx_scene_imageColor(FfxNode node);
 
 //FfxSize ffx_scene_imageSize(FfxNode node);
@@ -157,10 +161,19 @@ uint32_t ffx_scene_imageAnimateAlpha(FfxScene scene, FfxNode node, uint32_t targ
  * TEXT NODE
  ********************************************************/
 
+typedef enum FfxFont {
+    FfxFontBig     = 0x0f,    // 32-point
+    FfxFontMedium  = 0x0b,    // 24-point
+    FfxFontSmall   = 0x08,    // 18-point
+    FfxFontBold    = 0x10,    // Bold
+} FfxFont;
+
 // Create a TextNode backed by static content, up to dataLength bytes long.
 // Text can NOT be updated using scene_setText and must NOT change.
 FfxNode ffx_scene_createText(FfxScene scene, const char* data,
   uint32_t dataLength);
+
+FfxNode ffx_scene_createTextStr(FfxScene scene, const char* test);
 
 // Create a TextNode backed by provided data, up to floor(dataLength / 2)
 // long, which can be updated using scene_textSetText. The data is split
@@ -178,6 +191,8 @@ void ffx_scene_textSetText(FfxNode node, const char* const text,
 void ffx_scene_textSetTextInt(FfxNode node, int32_t value);
 void ffx_scene_textSetColor(FfxNode node, rgb16_ffxt color);
 //void scene_textSetColorAlpha(Node node, rgba_t color);
+
+size_t ffx_scene_textGetText(FfxNode node, char *text, size_t length);
 
 uint32_t ffx_scene_textAnimateColor(FfxScene scene, FfxNode node,
     rgb16_ffxt target, uint32_t duration, FfxCurveFunc curve,
