@@ -1,6 +1,7 @@
 import fs from "fs";
-import Jimp from "jimp";
+import { Jimp } from "jimp";
 import { ImageRGB, ImageRGBA } from "./image-rgb.js";
+import { ImageSubPixel } from "./image-subpixel.js";
 import { toDotH } from "./dot-h.js";
 (async function () {
     let format = "RGB";
@@ -19,6 +20,9 @@ import { toDotH } from "./dot-h.js";
             else if (arg === "--rgba") {
                 format = "RGBA";
             }
+            else if (arg === "--sub") {
+                format = "SUB";
+            }
             else {
                 throw new Error(`unknown flag: ${arg}`);
             }
@@ -32,7 +36,7 @@ import { toDotH } from "./dot-h.js";
         }
     }
     const data = fs.readFileSync(filename);
-    const jimp = await Jimp.read(data);
+    const jimp = (await Jimp.read(data));
     let image;
     switch (format) {
         case "RGB":
@@ -40,6 +44,9 @@ import { toDotH } from "./dot-h.js";
             break;
         case "RGBA":
             image = ImageRGBA.fromImage(jimp);
+            break;
+        case "SUB":
+            image = ImageSubPixel.fromImage(jimp);
             break;
         default:
             throw new Error(`unknown format: ${format}`);

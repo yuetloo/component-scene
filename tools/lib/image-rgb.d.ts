@@ -1,11 +1,6 @@
-import Jimp from "jimp";
+import type { JimpInstance } from "jimp";
 import type { RGBA } from "./color.js";
 import type { Image } from "./image.js";
-export type ImageData = {
-    width: number;
-    height: number;
-    pixels: Array<RGBA>;
-};
 export declare class ImageRGBA implements Image {
     #private;
     readonly width: number;
@@ -15,7 +10,7 @@ export declare class ImageRGBA implements Image {
     _addAlpha(data: Array<number>): void;
     _addRgb(data: Array<number>): void;
     get bytes(): Uint8Array;
-    static fromImage(jimp: Jimp): ImageRGBA;
+    static fromImage(jimp: JimpInstance): ImageRGBA;
 }
 export declare class ImageRGB extends ImageRGBA {
     get bytes(): Uint8Array;

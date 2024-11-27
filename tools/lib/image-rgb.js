@@ -11,20 +11,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _ImageRGBA_pixels;
 import { alpha4, rgb565 } from "./color.js";
-import { FORMAT_ALPHA, FORMAT_RGB565, VERSION_TAG } from "./image.js";
-function getPixels(jimp) {
-    const { data, width, height } = jimp.bitmap;
-    const size = width * height;
-    const pixels = [];
-    for (let i = 0; i < size; i++) {
-        const r = data[4 * i + 0];
-        const g = data[4 * i + 1];
-        const b = data[4 * i + 2];
-        const a = data[4 * i + 3];
-        pixels.push({ r, g, b, a });
-    }
-    return { width, height, pixels };
-}
+import { FORMAT_ALPHA, FORMAT_RGB565, VERSION_TAG, getPixels } from "./image.js";
 export class ImageRGBA {
     constructor(width, height, pixels) {
         _ImageRGBA_pixels.set(this, void 0);
