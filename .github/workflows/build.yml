@@ -18,11 +18,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 20
-    - name: Update firefly-scene submodule to the current branch
+    - name: Update firefly-scene submodule
       run: |
         cd ${{ github.workspace }}
-        git submodule set-branch --branch ${{ github.ref }} components/firefly-scene
-        git submodule update --remote --checkout --recursive -- components/firefly-scene
+        git submodule set-url -- components/firefly-scene ${{ github.repositoryUrl }}
+        git submodule set-branch -b ${{ github.ref }} -- components/firefly-scene
+        git submodule update --init --remote --checkout --recursive -- components/firefly-scene
     - name: Verify scene and display components
       run: |
         ls -la ${{ github.workspace }}/components/firefly-display
