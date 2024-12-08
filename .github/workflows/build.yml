@@ -8,19 +8,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout pixie-firmware
-      uses: actions/checkout@v3
-      with:
-        repository: 'firefly/pixie-firmware'
-        ref: 'main'
-        submodules: 'recursive'
     - name: Setup node version
       uses: actions/setup-node@v4
       with:
         node-version: 20
-    - name: Update firefly-scene submodule
+    - name: Checkout pixie-firmware
       run: |
-        cd ${{ github.workspace }}
+        git clone ${{ github.server_url }}/firefly/pixie-firmware.git
+        cd pixie-firmware
+        git checkout main
         git submodule deinit -- components/firefly-scene
         git submodule set-url -- components/firefly-scene ${{ github.server_url }}/${{ github.repository}}.git
         git submodule set-branch -b ${{ github.ref_name }} -- components/firefly-scene
@@ -28,15 +24,17 @@ jobs:
         git submodule update --init --remote --checkout --recursive -- components/firefly-scene
     - name: Verify scene and display components
       run: |
-        ls -la ${{ github.workspace }}/components/firefly-display
-        ls -la ${{ github.workspace }}/components/firefly-scene
+        cd pixie-firmware
+        ls -laR components
         git submodule status
     - name: Build pixie-firmware using Docker
       id: build
       run: |
+        cd pixie-firmware
         docker run --rm -v $PWD:/project -w /project -e HOME=/tmp espressif/idf idf.py build
     - name: Verify assets
       run: |
-        ls -l ${{ github.workspace }}/build/pixie.bin
-        ls -l ${{ github.workspace }}/build/bootloader/bootloader.bin
-        ls -l ${{ github.workspace }}/build/partition_table/partition-table.bin
+        cd pixie-firmware
+        ls -l build/pixie.bin
+        ls -l build/bootloader/bootloader.bin
+        ls -l build/partition_table/partition-table.bin
