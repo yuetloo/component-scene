@@ -22,7 +22,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}
         git submodule set-branch --branch ${{ github.ref }} components/firefly-scene
-        git submodule update components/firefly-scene --remote --checkout --recursive
+        git submodule update --remote --checkout --recursive -- components/firefly-scene
     - name: Verify scene and display components
       run: |
         ls -la ${{ github.workspace }}/components/firefly-display
