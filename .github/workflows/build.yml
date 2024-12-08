@@ -21,7 +21,7 @@ jobs:
     - name: Update firefly-scene submodule
       run: |
         cd ${{ github.workspace }}
-        git submodule set-url -- components/firefly-scene ${{ github.repositoryUrl }}
+        git submodule set-url -- components/firefly-scene ${{ github.server_url }}/${{ github.repository}}.git
         git submodule set-branch -b ${{ github.ref }} -- components/firefly-scene
         git submodule update --init --remote --checkout --recursive -- components/firefly-scene
     - name: Verify scene and display components
