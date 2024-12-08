@@ -21,6 +21,7 @@ jobs:
     - name: Update firefly-scene submodule
       run: |
         cd ${{ github.workspace }}/components/firefly-scene
+        git remote -v
         git pull
         cd -
         git submodule set-url -- components/firefly-scene ${{ github.server_url }}/${{ github.repository}}.git
