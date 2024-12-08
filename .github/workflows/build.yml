@@ -20,6 +20,7 @@ jobs:
         node-version: 20
     - name: Update firefly-scene submodule
       run: |
+        ls -la ${{ github.workspace }}
         cd ${{ github.workspace }}
         git submodule set-url -- components/firefly-scene ${{ github.server_url }}/${{ github.repository}}.git
         git submodule set-branch -b ${{ github.ref_name }} -- components/firefly-scene
