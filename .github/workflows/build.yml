@@ -14,7 +14,7 @@ jobs:
         node-version: 20
     - name: Checkout pixie-firmware
       run: |
-        git clone --recurse-submodules ${{ github.server_url }}/firefly/pixie-firmware.git
+        git clone ${{ github.server_url }}/firefly/pixie-firmware.git
         cd pixie-firmware
         git checkout main
         git submodule deinit -- components/firefly-scene
@@ -22,10 +22,12 @@ jobs:
         git submodule set-branch -b ${{ github.ref_name }} -- components/firefly-scene
         cat .gitmodules
         git submodule update --init --remote --checkout --recursive -- components/firefly-scene
+        git submodule update --init --remote --checkout --recursive -- components/firefly-display
     - name: Verify scene and display components
       run: |
         cd pixie-firmware
-        ls -laR components
+        ls -la components/firefly-scene
+        ls -la components/firefly-display
         git submodule status
     - name: Build pixie-firmware using Docker
       id: build
