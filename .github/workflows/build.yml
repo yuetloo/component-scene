@@ -14,7 +14,7 @@ jobs:
         node-version: 20
     - name: Checkout pixie-firmware
       run: |
-        git clone ${{ github.server_url }}/firefly/pixie-firmware.git
+        git clone --recurse-submodules ${{ github.server_url }}/firefly/pixie-firmware.git
         cd pixie-firmware
         git checkout main
         git submodule deinit -- components/firefly-scene
