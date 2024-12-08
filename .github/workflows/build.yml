@@ -18,7 +18,6 @@ jobs:
         ref: 'main'
     - name: Checkout pixie-firmware
       run: |
-        git submodule deinit -- components/firefly-scene
         git submodule set-url -- components/firefly-scene ${{ github.server_url }}/${{ github.repository}}.git
         git submodule set-branch -b ${{ github.ref_name }} -- components/firefly-scene
         cat .gitmodules
